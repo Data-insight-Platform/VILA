@@ -111,6 +111,13 @@ def load_pretrained_model(
         else:
             config = AutoConfig.from_pretrained(model_path)
             config.resume_path = model_path
+            # override config from the ENVIRONMENT
+            if "num_video_frames" in kwargs:
+                config.num_video_frames = kwargs.pop("num_video_frames")
+            if "model_max_length" in kwargs:
+                config.model_max_length = kwargs.pop("model_max_length")
+            if "max_sequence_length" in kwargs:
+                config.max_sequence_length = kwargs.pop("max_sequence_length")
             prepare_config_for_eval(config, kwargs)
             model = LlavaLlamaModel(config=config, low_cpu_mem_usage=True, **kwargs)
             tokenizer = model.tokenizer
@@ -144,7 +151,7 @@ def load_pretrained_model(
         image_processor = vision_tower.image_processor
 
     if hasattr(model.llm.config, "max_sequence_length"):
-        context_len = model.config.max_sequence_length
+        context_len = model.llm.config.max_sequence_length
     else:
         context_len = 2048
 
@@ -160,5 +167,3 @@ def prepare_config_for_eval(config: PretrainedConfig, kwargs: dict):
         raise ValueError(f"Invalid configuration! Cannot find vision_tower in config:\n{config}")
 
     config.model_dtype = kwargs.pop("torch_dtype").__str__()
-
-

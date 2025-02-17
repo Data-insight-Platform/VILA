@@ -140,8 +140,8 @@ class LlavaMetaModel(ABC):
         vlm.vision_tower = build_vision_tower(vision_tower_cfg, config)
         vlm.mm_projector = build_mm_projector(mm_projector_cfg, config)
 
-        self.post_config()
-        self.is_loaded = True
+        cls.post_config()
+        cls.is_loaded = True
 
         # FIXME(ligeng, yunhao): llm should never be none here.
         assert (
@@ -867,5 +867,3 @@ class LlavaMetaForCausalLM(ABC):
         if generation_config.eos_token_id is None:
             generation_config.eos_token_id = self.tokenizer.stop_token_ids
         return generation_config
-
-
