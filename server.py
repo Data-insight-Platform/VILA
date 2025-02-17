@@ -13,7 +13,7 @@ from typing import List, Literal, Optional, Union, get_args
 import requests
 import torch
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from PIL import Image as PILImage
 from PIL.Image import Image
@@ -22,7 +22,13 @@ from transformers.generation.streamers import TextIteratorStreamer
 
 from llava.constants import DEFAULT_IMAGE_TOKEN
 from llava.conversation import SeparatorStyle, conv_templates
-from llava.mm_utils import KeywordsStoppingCriteria, get_model_name_from_path, process_images, tokenizer_image_token
+from llava.mm_utils import (
+    KeywordsStoppingCriteria,
+    get_model_name_from_path,
+    process_images,
+    tokenizer_image_token,
+)
+from llava.media import Image, Video
 from llava.model.builder import load_pretrained_model
 from llava.utils import disable_torch_init
 
@@ -51,6 +57,14 @@ class ChatMessage(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     model: Literal[
+        "NVILA-8B",
+        "nvila-8b",
+        "NVILA-8B-Lite",
+        "nvila-8b-lite",
+        "NVILA-15B",
+        "nvila-15b",
+        "NVILA-15B-Lite",
+        "nvila-15b-lite",
         "VILA1.5-3B",
         "VILA1.5-3B-AWQ",
         "VILA1.5-3B-S2",
@@ -115,7 +129,9 @@ async def lifespan(app: FastAPI):
     disable_torch_init()
     model_path = app.args.model_path
     model_name = get_model_name_from_path(model_path)
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, model_name, None)
+    tokenizer, model, image_processor, context_len = load_pretrained_model(
+        model_path, model_name, None
+    )
     print(f"Model {model_name} loaded successfully. Context length: {context_len}")
     yield
 
@@ -123,51 +139,34 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-# Load model upon startup
-@app.post("/chat/completions")
-async def chat_completions(request: ChatCompletionRequest):
-    try:
-        global model, tokenizer, image_processor, context_len
+def process_vila(
+    req_model, max_tokens, temperature, top_p, use_cache, num_beams, messages, conv_mode
+):
+    images = []
 
-        if request.model != model_name:
-            raise ValueError(
-                f"The endpoint is configured to use the model {model_name}, "
-                f"but the request model is {request.model}"
-            )
-        max_tokens = request.max_tokens
-        temperature = request.temperature
-        top_p = request.top_p
-        use_cache = request.use_cache
-        num_beams = request.num_beams
+    conv = conv_templates[conv_mode].copy()
+    user_role = conv.roles[0]
+    assistant_role = conv.roles[1]
 
-        messages = request.messages
-        conv_mode = app.args.conv_mode
+    for message in messages:
+        if message.role == "user":
+            prompt = ""
 
-        images = []
-
-        conv = conv_templates[conv_mode].copy()
-        user_role = conv.roles[0]
-        assistant_role = conv.roles[1]
-
-        for message in messages:
-            if message.role == "user":
-                prompt = ""
-
-                if isinstance(message.content, str):
-                    prompt += message.content
-                if isinstance(message.content, list):
-                    for content in message.content:
-                        if content.type == "text":
-                            prompt += content.text
-                        if content.type == "image_url":
-                            image = load_image(content.image_url.url)
-                            images.append(image)
-                            prompt += DEFAULT_IMAGE_TOKEN
-                normalized_prompt = normalize_image_tags(prompt)
-                conv.append_message(user_role, normalized_prompt)
-            if message.role == "assistant":
-                prompt = message.content
-                conv.append_message(assistant_role, prompt)
+            if isinstance(message.content, str):
+                prompt += message.content
+            if isinstance(message.content, list):
+                for content in message.content:
+                    if content.type == "text":
+                        prompt += content.text
+                    if content.type == "image_url":
+                        image = load_image(content.image_url.url)
+                        images.append(image)
+                        prompt += DEFAULT_IMAGE_TOKEN
+            normalized_prompt = normalize_image_tags(prompt)
+            conv.append_message(user_role, normalized_prompt)
+        if message.role == "assistant":
+            prompt = message.content
+            conv.append_message(assistant_role, prompt)
 
         # add a last "assistant" message to complete the prompt
         if conv.sep_style == SeparatorStyle.LLAMA_3:
@@ -180,10 +179,16 @@ async def chat_completions(request: ChatCompletionRequest):
         if len(images) == 0:
             images_input = None
         else:
-            images_tensor = process_images(images, image_processor, model.config).to(model.device, dtype=torch.float16)
+            images_tensor = process_images(images, image_processor, model.config).to(
+                model.device, dtype=torch.float16
+            )
             images_input = [images_tensor]
 
-        input_ids = tokenizer_image_token(prompt_text, tokenizer, return_tensors="pt").unsqueeze(0).to(model.device)
+        input_ids = (
+            tokenizer_image_token(prompt_text, tokenizer, return_tensors="pt")
+            .unsqueeze(0)
+            .to(model.device)
+        )
 
         stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
         keywords = [stop_str]
@@ -228,7 +233,7 @@ async def chat_completions(request: ChatCompletionRequest):
                                 "id": chunk_id,
                                 "object": "chat.completion.chunk",
                                 "created": time.time(),
-                                "model": request.model,
+                                "model": req_model,
                                 "choices": [{"delta": {"content": new_text}}],
                             }
                             yield f"data: {json.dumps(chunk)}\n\n"
@@ -255,15 +260,98 @@ async def chat_completions(request: ChatCompletionRequest):
                     outputs = outputs[: -len(stop_str)]
                 outputs = outputs.strip()
                 print("\nAssistant: ", outputs)
-
                 resp_content = [TextContent(type="text", text=outputs)]
                 return {
                     "id": uuid.uuid4().hex,
                     "object": "chat.completion",
                     "created": time.time(),
-                    "model": request.model,
+                    "model": req_model,
                     "choices": [{"message": ChatMessage(role="assistant", content=resp_content)}],
                 }
+
+
+def process_nvilla(
+    req_model, max_tokens, temperature, top_p, use_cache, num_beams, messages, conv_mode
+):
+    conv = conv_templates[conv_mode].copy()
+    prompt = []
+    for message in messages:
+        if not isinstance(message.content, list):
+            raise ValueError(f"Unsupported content type: {message.content}")
+        for content in message.content:
+            if content.type == "text":
+                prompt.append(content.text)
+            elif content.type == "image_url":
+                if any(content.image_url.url.endswith(ext) for ext in (".jpg", ".jpeg", ".png")):
+                    prompt.append(Image(content.image_url.url))
+                elif any(content.image_url.url.endswith(ext) for ext in (".mp4", ".mkv", ".webm")):
+                    prompt.append(Video(content.image_url.url))
+            else:
+                raise ValueError(f"Unsupported media type: {message.content}")
+    response = model.generate_content(prompt)
+    return {
+        "id": uuid.uuid4().hex,
+        "object": "chat.completion",
+        "created": time.time(),
+        "model": req_model,
+        "choices": [{"message": ChatMessage(role="assistant", content=response)}],
+    }
+
+
+@app.get("/ping")
+async def ping():
+    """
+    SageMaker health check endpoint
+    """
+    if model is None:
+        return JSONResponse(status_code=500, content={"status": "Model not loaded"})
+    return JSONResponse(content={"status": "Healthy"})
+
+
+@app.post("/chat/completions")
+async def chat_completions(request: ChatCompletionRequest):
+    return await process_request(request)
+
+
+@app.post("/invocations")
+async def invocations(request: Request):
+    """
+    SageMaker invocation endpoint that maintains OpenAI compatibility
+    """
+    # Parse the raw request to ChatCompletionRequest
+    body = await request.json()
+    chat_request = ChatCompletionRequest(**body)
+    return await process_request(chat_request)
+
+
+async def process_request(request: ChatCompletionRequest):
+    try:
+        if request.model != model_name:
+            raise ValueError(
+                f"The endpoint is configured to use the model {model_name}, "
+                f"but the request model is {request.model}"
+            )
+        if "nvila" in model_name.lower():
+            return process_nvilla(
+                request.model,
+                request.max_tokens,
+                request.temperature,
+                request.top_p,
+                request.use_cache,
+                request.num_beams,
+                request.messages,
+                app.args.conv_mode,
+            )
+        return process_vila(
+            request.model,
+            request.max_tokens,
+            request.temperature,
+            request.top_p,
+            request.use_cache,
+            request.num_beams,
+            request.messages,
+            app.args.conv_mode,
+        )
     except Exception as e:
         return JSONResponse(
             status_code=500,
@@ -272,9 +360,11 @@ async def chat_completions(request: ChatCompletionRequest):
 
 
 if __name__ == "__main__":
+    SAGEMAKER_PORT = int(os.getenv("SAGEMAKER_BIND_TO_PORT", "8080"))
+    SAGEMAKER_HOST = os.getenv("SAGEMAKER_BIND_TO_HOST", "0.0.0.0")
 
-    host = os.getenv("VILA_HOST", "0.0.0.0")
-    port = os.getenv("VILA_PORT", 8000)
+    host = os.getenv("VILA_HOST", SAGEMAKER_HOST)
+    port = os.getenv("VILA_PORT", SAGEMAKER_PORT)
     model_path = os.getenv("VILA_MODEL_PATH", "Efficient-Large-Model/VILA1.5-3B")
     conv_mode = os.getenv("VILA_CONV_MODE", "vicuna_v1")
     workers = os.getenv("VILA_WORKERS", 1)
@@ -285,8 +375,9 @@ if __name__ == "__main__":
     parser.add_argument("--model-path", type=str, default=model_path)
     parser.add_argument("--conv-mode", type=str, default=conv_mode)
     parser.add_argument("--workers", type=int, default=workers)
+
+    parser.add_argument("serve", nargs='?', help="SageMaker serve argument")
+
     app.args = parser.parse_args()
 
     uvicorn.run(app, host=app.args.host, port=app.args.port, workers=app.args.workers)
-
-

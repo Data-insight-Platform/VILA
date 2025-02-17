@@ -26,6 +26,19 @@ def _extract_image(image: Union[Image, PIL.Image.Image]) -> PIL.Image.Image:
             image = PIL.Image.open(image.path)
     return image
 
+def download_s3_asset(video_path: str, s3_prefix: str = "s3://") -> str:
+    import boto3
+    from pathlib import Path
+
+    video_path = video_path.replace(s3_prefix, "")
+    bucket, key = video_path.split("/", 1)
+    s3 = boto3.client("s3")
+    assets_dir = Path("/tmp/inference")
+    asset = assets_dir / key
+    asset.parent.mkdir(parents=True, exist_ok=True)
+    s3.download_file(bucket, key, asset.as_posix())
+    return asset.as_posix()
+
 
 def _load_video(video_path: str, *, num_frames: int) -> List[PIL.Image.Image]:
     # Load video frames from a directory
@@ -33,6 +46,10 @@ def _load_video(video_path: str, *, num_frames: int) -> List[PIL.Image.Image]:
         frame_paths = sorted(glob.glob(os.path.join(video_path, "*")))
         indices = np.round(np.linspace(0, len(frame_paths) - 1, num_frames)).astype(int)
         return [PIL.Image.open(frame_paths[index]) for index in indices]
+
+    from_s3 = video_path.startswith("s3://")
+    if from_s3:
+        video_path = download_s3_asset(video_path)
 
     # Load video frames from a video file
     vidcap = cv2.VideoCapture(video_path)
@@ -60,6 +77,8 @@ def _load_video(video_path: str, *, num_frames: int) -> List[PIL.Image.Image]:
             continue
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frames[index] = PIL.Image.fromarray(frame)
+    if from_s3:
+        os.remove(video_path)
     return [frames[index] for index in indices if index in frames]
 
 

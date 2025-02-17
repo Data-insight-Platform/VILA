@@ -15,4 +15,10 @@ RUN bash environment_setup.sh vila
 
 
 COPY server.py server.py
-CMD ["conda", "run", "-n", "vila", "--no-capture-output", "python", "-u", "-W", "ignore", "server.py"]
+
+
+ENV SAGEMAKER_PROGRAM server.py
+ENV PYTHONUNBUFFERED 1
+EXPOSE 8080
+
+ENTRYPOINT ["conda", "run", "-n", "vila", "--no-capture-output", "python", "-u", "-W", "ignore", "server.py"]
