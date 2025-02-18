@@ -84,7 +84,10 @@ def main(rank: int = 0, world_size: int = 1):
     )
     parser.add_argument("--workers", default=8, type=int, help="Number of loader workers to use")
     parser.add_argument(
-        "--vitdet-window-size", default=None, type=int, help="Enable ViTDet at the specific window size"
+        "--vitdet-window-size",
+        default=None,
+        type=int,
+        help="Enable ViTDet at the specific window size",
     )
     parser.add_argument("--output-dir", default="vis_denoise", type=str)
     parser.add_argument("--adaptor-name", default=None, type=str, help="Generate features from a teacher adaptor")
@@ -97,7 +100,9 @@ def main(rank: int = 0, world_size: int = 1):
 
     rank_print("Loading model...")
     model, preprocessor, info = load_model(
-        args.model_version, vitdet_window_size=args.vitdet_window_size, adaptor_name=args.adaptor_name
+        args.model_version,
+        vitdet_window_size=args.vitdet_window_size,
+        adaptor_name=args.adaptor_name,
     )
     model.to(device=device).eval()
     if isinstance(preprocessor, nn.Module):
@@ -180,12 +185,12 @@ def main(rank: int = 0, world_size: int = 1):
 
                 orig = cv2.cvtColor(images[i].permute(1, 2, 0).cpu().numpy(), cv2.COLOR_RGB2BGR)
 
-                cv2.imwrite(f'{dirs["orig"]}/vis_{ctr}.jpg', orig * 255)
-                cv2.imwrite(f'{dirs["viz"]}/vis_{ctr}.jpg', colored[-1] * 255)
+                cv2.imwrite(f"{dirs['orig']}/vis_{ctr}.jpg", orig * 255)
+                cv2.imwrite(f"{dirs['viz']}/vis_{ctr}.jpg", colored[-1] * 255)
 
                 op = np.concatenate([orig] + colored, axis=1) * 255
 
-                cv2.imwrite(f'{dirs["sbs"]}/vis_{ctr}.jpg', op)
+                cv2.imwrite(f"{dirs['sbs']}/vis_{ctr}.jpg", op)
                 ctr += 1
 
 
@@ -349,5 +354,3 @@ if __name__ == "__main__":
     #     world_size = dist.get_world_size()
 
     main(rank, world_size)
-
-

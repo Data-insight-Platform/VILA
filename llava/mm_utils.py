@@ -221,10 +221,20 @@ def opencv_extract_frames(vpath_or_bytesio, frames=6, max_fps=0.0, fps=None, fra
         vidcap = cv2.VideoCapture(vpath_or_bytesio)
         if max_fps > 0.0:
             return get_frame_from_vcap_with_fps(
-                vidcap, frames, max_fps, fps=fps, frame_count=frame_count, video_file_name=vpath_or_bytesio
+                vidcap,
+                frames,
+                max_fps,
+                fps=fps,
+                frame_count=frame_count,
+                video_file_name=vpath_or_bytesio,
             )
         return get_frame_from_vcap(
-            vidcap, frames, max_fps, fps=fps, frame_count=frame_count, video_file_name=vpath_or_bytesio
+            vidcap,
+            frames,
+            max_fps,
+            fps=fps,
+            frame_count=frame_count,
+            video_file_name=vpath_or_bytesio,
         )
     elif isinstance(vpath_or_bytesio, (BytesIO,)):
         # assuming mp4
@@ -234,10 +244,20 @@ def opencv_extract_frames(vpath_or_bytesio, frames=6, max_fps=0.0, fps=None, fra
             vidcap = cv2.VideoCapture(temp_video_name)
             if max_fps > 0.0:
                 return get_frame_from_vcap_with_fps(
-                    vidcap, frames, max_fps, fps=fps, frame_count=frame_count, video_file_name=temp_video_name
+                    vidcap,
+                    frames,
+                    max_fps,
+                    fps=fps,
+                    frame_count=frame_count,
+                    video_file_name=temp_video_name,
                 )
             return get_frame_from_vcap(
-                vidcap, frames, max_fps, fps=fps, frame_count=frame_count, video_file_name=temp_video_name
+                vidcap,
+                frames,
+                max_fps,
+                fps=fps,
+                frame_count=frame_count,
+                video_file_name=temp_video_name,
             )
     else:
         raise NotImplementedError(type(vpath_or_bytesio))
@@ -437,7 +457,12 @@ def dynamic_s2_process_images_and_prompt(images, prompt, data_args, image_folder
 
 
 def process_image(
-    image_file, data_args, image_folder, enable_dynamic_res=False, enable_dynamic_s2=False, max_tiles=None
+    image_file,
+    data_args,
+    image_folder,
+    enable_dynamic_res=False,
+    enable_dynamic_s2=False,
+    max_tiles=None,
 ):
     processor = data_args.image_processor
     if isinstance(image_file, str):
@@ -459,7 +484,10 @@ def process_image(
     if "dynamic_s2" in data_args.image_aspect_ratio and enable_dynamic_s2:
         assert crop_size["height"] == crop_size["width"]
         images, block_size = dynamic_s2_preprocess(
-            image, s2_scales=data_args.s2_scales, max_num=data_args.max_tiles, image_size=crop_size["height"]
+            image,
+            s2_scales=data_args.s2_scales,
+            max_num=data_args.max_tiles,
+            image_size=crop_size["height"],
         )
         images = [processor.preprocess(image, return_tensors="pt")["pixel_values"][0] for image in images]
         return torch.stack(images), block_size
@@ -567,5 +595,3 @@ class KeywordsStoppingCriteria(StoppingCriteria):
         for i in range(output_ids.shape[0]):
             outputs.append(self.call_for_batch(output_ids[i].unsqueeze(0), scores))
         return all(outputs)
-
-

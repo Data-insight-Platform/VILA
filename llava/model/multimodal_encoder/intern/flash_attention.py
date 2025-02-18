@@ -22,7 +22,9 @@ from einops import rearrange
 try:  # v1
     from flash_attn.flash_attn_interface import flash_attn_unpadded_qkvpacked_func
 except:  # v2
-    from flash_attn.flash_attn_interface import flash_attn_varlen_qkvpacked_func as flash_attn_unpadded_qkvpacked_func
+    from flash_attn.flash_attn_interface import (
+        flash_attn_varlen_qkvpacked_func as flash_attn_unpadded_qkvpacked_func,
+    )
 
 from flash_attn.bert_padding import pad_input, unpad_input
 
@@ -43,7 +45,15 @@ class FlashAttention(nn.Module):
         self.softmax_scale = softmax_scale
         self.dropout_p = attention_dropout
 
-    def forward(self, qkv, key_padding_mask=None, causal=False, cu_seqlens=None, max_s=None, need_weights=False):
+    def forward(
+        self,
+        qkv,
+        key_padding_mask=None,
+        causal=False,
+        cu_seqlens=None,
+        max_s=None,
+        need_weights=False,
+    ):
         """Implements the multihead softmax attention.
         Arguments
         ---------
@@ -103,5 +113,3 @@ class FlashAttention(nn.Module):
             )
 
         return output, None
-
-

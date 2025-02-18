@@ -154,7 +154,8 @@ def _save_checkpoint(self, model, trial, metrics=None):
     torch.distributed.barrier()
     if staging_output_dir != output_dir:
         with self.args.main_process_first(
-            desc="Renaming model checkpoint folder to true location", local=self.args.save_on_each_node
+            desc="Renaming model checkpoint folder to true location",
+            local=self.args.save_on_each_node,
         ):
             if os.path.exists(staging_output_dir):
                 os.rename(staging_output_dir, output_dir)
@@ -295,5 +296,3 @@ def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=N
         loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
 
     return (loss, outputs) if return_outputs else loss
-
-

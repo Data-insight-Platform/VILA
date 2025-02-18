@@ -134,7 +134,10 @@ def preprocess_conversation(
     # Generate the template by replacing the assistant's response with a sentinel.
     _maybe_add_sentinel_token(tokenizer)
     template = tokenize_conversation(
-        conversation, tokenizer, overrides={"gpt": SENTINEL_TOKEN}, no_system_prompt=no_system_prompt
+        conversation,
+        tokenizer,
+        overrides={"gpt": SENTINEL_TOKEN},
+        no_system_prompt=no_system_prompt,
     )
 
     # Remove sentinel tokens from the template.
@@ -181,5 +184,3 @@ def infer_stop_tokens(tokenizer: transformers.PreTrainedTokenizer) -> List[str]:
             stop_token = tokenizer.decode(template[k + 1])
             stop_tokens.add(stop_token)
     return list(stop_tokens)
-
-

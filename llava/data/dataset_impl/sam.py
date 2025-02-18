@@ -44,7 +44,12 @@ from llava import conversation as conversation_lib
 from llava.constants import DEFAULT_IMAGE_TOKEN, IGNORE_INDEX
 from llava.data.dataset import LazySupervisedDataset, lru_json_load
 from llava.data.simple_vila_webdataset import VILAWebDataset
-from llava.mm_utils import is_gemma_tokenizer, opencv_extract_frames, process_image, tokenizer_image_token
+from llava.mm_utils import (
+    is_gemma_tokenizer,
+    opencv_extract_frames,
+    process_image,
+    tokenizer_image_token,
+)
 from llava.model import *
 from llava.train.args import DataArguments, TrainingArguments
 from llava.train.llava_trainer import LLaVATrainer
@@ -230,5 +235,3 @@ if __name__ == "__main__":
     for idx, data in enumerate(dst):
         print(idx, data.keys())
 # nvcode: off
-
-

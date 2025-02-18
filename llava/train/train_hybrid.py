@@ -33,14 +33,24 @@ def __iter__(self):
 
 if __name__ == "__main__":
     with (
-        mock.patch("transformers.models.llama.modeling_llama._flash_attention_forward", new=_flash_attention_forward),
-        mock.patch("transformers.models.llama.modeling_llama.LlamaModel._update_causal_mask", new=_update_causal_mask),
-        mock.patch("transformers.models.qwen2.modeling_qwen2._flash_attention_forward", new=_flash_attention_forward),
-        mock.patch("transformers.models.qwen2.modeling_qwen2.Qwen2Model._update_causal_mask", new=_update_causal_mask),
+        mock.patch(
+            "transformers.models.llama.modeling_llama._flash_attention_forward",
+            new=_flash_attention_forward,
+        ),
+        mock.patch(
+            "transformers.models.llama.modeling_llama.LlamaModel._update_causal_mask",
+            new=_update_causal_mask,
+        ),
+        mock.patch(
+            "transformers.models.qwen2.modeling_qwen2._flash_attention_forward",
+            new=_flash_attention_forward,
+        ),
+        mock.patch(
+            "transformers.models.qwen2.modeling_qwen2.Qwen2Model._update_causal_mask",
+            new=_update_causal_mask,
+        ),
         mock.patch("transformers.image_processing_utils.normalize", new=patched_normalize),
         mock.patch("accelerate.data_loader.BatchSamplerShard.__len__", new=__len__),
         mock.patch("accelerate.data_loader.BatchSamplerShard.__iter__", new=__iter__),
     ):
         train()
-
-

@@ -394,7 +394,12 @@ def liger_fixed_cross_entropy(source, target, num_items_in_batch: int = None, ig
 
 
 def LigerForCausalLMLoss(
-    logits, labels, vocab_size: int, num_items_in_batch: int = None, ignore_index: int = -100, **kwargs
+    logits,
+    labels,
+    vocab_size: int,
+    num_items_in_batch: int = None,
+    ignore_index: int = -100,
+    **kwargs,
 ):
     # Upcast to float if we need to compute the loss to avoid potential precision issues
     logits = logits.float()
@@ -409,5 +414,3 @@ def LigerForCausalLMLoss(
     shift_labels = shift_labels.to(shift_logits.device)
     loss = liger_fixed_cross_entropy(shift_logits, shift_labels, num_items_in_batch, ignore_index, **kwargs)
     return loss
-
-

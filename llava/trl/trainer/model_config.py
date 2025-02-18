@@ -78,10 +78,12 @@ class ModelConfig:
         metadata={"help": ("Model layers to unfreeze & train")},
     )
     load_in_8bit: bool = field(
-        default=False, metadata={"help": "use 8 bit precision for the base model - works only with LoRA"}
+        default=False,
+        metadata={"help": "use 8 bit precision for the base model - works only with LoRA"},
     )
     load_in_4bit: bool = field(
-        default=False, metadata={"help": "use 4 bit precision for the base model - works only with LoRA"}
+        default=False,
+        metadata={"help": "use 4 bit precision for the base model - works only with LoRA"},
     )
 
     bnb_4bit_quant_type: Optional[str] = field(
@@ -98,5 +100,3 @@ class ModelConfig:
     def __post_init__(self):
         if self.load_in_8bit and self.load_in_4bit:
             raise ValueError("You can't use 8 bit and 4 bit precision at the same time")
-
-

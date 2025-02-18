@@ -35,7 +35,9 @@ from llava.constants import IGNORE_INDEX
 from llava.data import make_supervised_data_module
 from llava.mm_utils import process_image
 from llava.model import LlavaLlamaConfig, LlavaLlamaModel
-from llava.model.language_model.fp8linearqwen2 import Qwen2ForCausalLM  # We need this line to register AutoConfig
+from llava.model.language_model.fp8linearqwen2 import (
+    Qwen2ForCausalLM,
+)  # We need this line to register AutoConfig
 from llava.model.language_model.qllava_qllama import QLlavaLlamaModel, quantize_args_to_model_class
 from llava.train.args import DataArguments, ModelArguments, TrainingArguments
 from llava.train.callbacks.autoresume_callback import AutoResumeCallback
@@ -348,7 +350,12 @@ def load_data(data_path):
 class DPODataset(Dataset):
     """Dataset for supervised fine-tuning."""
 
-    def __init__(self, data_mixture: str, tokenizer: transformers.PreTrainedTokenizer, data_args: DataArguments):
+    def __init__(
+        self,
+        data_mixture: str,
+        tokenizer: transformers.PreTrainedTokenizer,
+        data_args: DataArguments,
+    ):
         super(Dataset, self).__init__()
         data_path = datasets_mixture.DATASETS_LEGACY[data_mixture].data_path
         list_data_dict = load_data(data_path)
@@ -399,7 +406,12 @@ class DPODataset(Dataset):
         frame_count = None
 
         images, frames_loaded = dataset.LazySupervisedDataset._load_video(
-            video_path, num_video_frames, loader_fps, self.data_args, fps=fps, frame_count=frame_count
+            video_path,
+            num_video_frames,
+            loader_fps,
+            self.data_args,
+            fps=fps,
+            frame_count=frame_count,
         )
 
         image_tensor = torch.stack([process_image(image, self.data_args, None) for image in images])
@@ -659,7 +671,11 @@ def train():
             )
 
         if not any(
-            [training_args.tune_language_model, training_args.tune_vision_tower, training_args.tune_mm_projector]
+            [
+                training_args.tune_language_model,
+                training_args.tune_vision_tower,
+                training_args.tune_mm_projector,
+            ]
         ):
             logging.warning("You are not tuning any part of the model. Please check if this is intended.")
 
@@ -831,5 +847,3 @@ def train():
 
 if __name__ == "__main__":
     train()
-
-

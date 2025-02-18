@@ -36,8 +36,12 @@ from tqdm import tqdm
 from transformers import AutoTokenizer, LlamaForCausalLM
 
 from llava.eval.vision_niah_vila.zigzag_ring_attn.modeling_qwen2 import Qwen2ForCausalLM_RingAttn
-from llava.eval.vision_niah_vila.zigzag_ring_attn.monkey_patch import apply_zigzag_ring_attn_monkey_patch_llama
-from llava.eval.vision_niah_vila.zigzag_ring_attn.prepare_inputs import prepare_zigzag_ring_attn_inputs
+from llava.eval.vision_niah_vila.zigzag_ring_attn.monkey_patch import (
+    apply_zigzag_ring_attn_monkey_patch_llama,
+)
+from llava.eval.vision_niah_vila.zigzag_ring_attn.prepare_inputs import (
+    prepare_zigzag_ring_attn_inputs,
+)
 from llava.mm_utils import get_model_name_from_path
 from llava.model.builder import load_pretrained_model
 
@@ -279,7 +283,12 @@ def inference(args):
                 print("Context %d, depth %d already done." % (num_frames, round(depth * 100, -1)))
                 continue
             accuracies = []
-            for (question_embedding, needle_embedding, answer_embedding, answer_id,) in zip(
+            for (
+                question_embedding,
+                needle_embedding,
+                answer_embedding,
+                answer_id,
+            ) in zip(
                 question_embeding_list,
                 needle_embedding_list,
                 answer_embedding_list,
@@ -383,7 +392,7 @@ def plot(args, all_accuries):
     # Define the formatter function
     def thousands_formatter(x, pos):
         if x >= 1000:
-            return f"{x/1000:.1f}K"
+            return f"{x / 1000:.1f}K"
         return f"{x}"
 
     context_lengths = pivot_table.columns
@@ -448,5 +457,3 @@ if __name__ == "__main__":
     args.add_argument("--plot_only", action="store_true")
 
     main(args.parse_args())
-
-

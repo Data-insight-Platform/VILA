@@ -154,9 +154,7 @@ class VILADistributedSampler(DistributedSampler):
                 raise RuntimeError("Requires distributed package to be available")
             rank = dist.get_rank()
         if rank >= num_replicas or rank < 0:
-            raise ValueError(
-                "Invalid rank {}, rank should be in the interval" " [0, {}]".format(rank, num_replicas - 1)
-            )
+            raise ValueError("Invalid rank {}, rank should be in the interval [0, {}]".format(rank, num_replicas - 1))
         self.dataset = dataset
         self.num_replicas = num_replicas
         self.rank = rank
@@ -208,7 +206,6 @@ class VILADistributedSampler(DistributedSampler):
         return self.num_samples * self.sp_degree
 
     def __iter__(self):
-
         indices = list(range(len(self.dataset)))
 
         # 1. split the full indices first (note: without drop last at this moment)
@@ -248,7 +245,6 @@ class VILADistributedSampler(DistributedSampler):
                 indices_available = list(range(self.num_samples))
 
                 for indice in dp_indices_list:
-
                     original_indices = range(len(indice))
                     transformed_indices = [idx * len(indices_available) // len(indice) for idx in original_indices]
 
@@ -286,7 +282,6 @@ class VILADistributedSampler(DistributedSampler):
             indices_available = list(range(self.num_samples))
 
             for indice in indices_list:
-
                 original_indices = range(len(indice))
                 transformed_indices = [idx * len(indices_available) // len(indice) for idx in original_indices]
 
@@ -350,7 +345,6 @@ class LongVILADistributedSampler(VILADistributedSampler):
                 indices_available = list(range(self.num_samples))
 
                 for indice in dp_indices_list:
-
                     original_indices = range(len(indice))
                     transformed_indices = [idx * len(indices_available) // len(indice) for idx in original_indices]
 
@@ -567,10 +561,10 @@ class VILADPOTrainer(DPOTrainer):
                     for module in opt_model.modules():
                         if isinstance(module, nn.Embedding):
                             skipped += sum({p.data_ptr(): p.numel() for p in module.parameters()}.values())
-                            logger.info(f"skipped {module}: {skipped/2**20}M params")
+                            logger.info(f"skipped {module}: {skipped / 2**20}M params")
                             manager.register_module_override(module, "weight", {"optim_bits": 32})
                             logger.debug(f"bitsandbytes: will optimize {module} in fp32")
-                    logger.info(f"skipped: {skipped/2**20}M params")
+                    logger.info(f"skipped: {skipped / 2**20}M params")
 
         return self.optimizer
 
@@ -797,10 +791,10 @@ class LLaVATrainer(Trainer):
                     for module in opt_model.modules():
                         if isinstance(module, nn.Embedding):
                             skipped += sum({p.data_ptr(): p.numel() for p in module.parameters()}.values())
-                            logger.info(f"skipped {module}: {skipped/2**20}M params")
+                            logger.info(f"skipped {module}: {skipped / 2**20}M params")
                             manager.register_module_override(module, "weight", {"optim_bits": 32})
                             logger.debug(f"bitsandbytes: will optimize {module} in fp32")
-                    logger.info(f"skipped: {skipped/2**20}M params")
+                    logger.info(f"skipped: {skipped / 2**20}M params")
 
         return self.optimizer
 
@@ -846,12 +840,9 @@ class LLaVATrainer(Trainer):
         self.state.log_history.append(output)
 
         if self.args.debug_e2e and self.control.should_training_stop:
-
             # Only save log history if the current process is rank 0
             if dist.get_rank() == 0:
                 with open(f"{self.args.output_dir}/log_history.json", "w") as f:
                     json.dump(self.state.log_history, f, indent=4)
 
         self.control = self.callback_handler.on_log(self.args, self.state, self.control, logs)
-
-

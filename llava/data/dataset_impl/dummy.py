@@ -92,5 +92,3 @@ class DummyDataset(BaseDataset):
         # Add media to the beginning of the first message
         messages[0]["value"] = medias + [messages[0]["value"]]
         return messages
-
-

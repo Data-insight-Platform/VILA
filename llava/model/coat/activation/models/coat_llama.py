@@ -267,7 +267,14 @@ class _CoatLlamaBeforeAttentionResidual(torch.autograd.Function):
         ctx.save_for_backward(in_x, in_s, ln_x_t, ln_s)
         if qargs.weight_memory_efficient:
             assert weight1_t is None and weight2_t is None and weight3_t is None
-            ctx.weight = weight1_origin, weight1_s, weight2_origin, weight2_s, weight3_origin, weight3_s
+            ctx.weight = (
+                weight1_origin,
+                weight1_s,
+                weight2_origin,
+                weight2_s,
+                weight3_origin,
+                weight3_s,
+            )
         else:
             ctx.weight = weight1_t, weight1_s, weight2_t, weight2_s, weight3_t, weight3_s
 
@@ -429,7 +436,18 @@ class CoatLlamaAfterAttentionResidual(FP8CacheWeightModule):
 class _CoatLlamaAfterAttentionResidual(torch.autograd.Function):
     @staticmethod
     def forward(
-        ctx, re_x, flash_x, weight4_origin, weight4, weight4_t, weight4_s, group_size, fwobits, layer_id, config, qargs
+        ctx,
+        re_x,
+        flash_x,
+        weight4_origin,
+        weight4,
+        weight4_t,
+        weight4_s,
+        group_size,
+        fwobits,
+        layer_id,
+        config,
+        qargs,
     ):
         # Quantize the FlashAttention Output
         flash_qx, flash_s, _ = fp8_quantize_pertensor(
@@ -680,7 +698,14 @@ class _CoatLlamaMLPResidual(torch.autograd.Function):
             qargs.weight_memory_efficient
         ):  # Weight_1/2_origin will not be saved twice, so it will be more memory efficient.
             assert weight1_t is None and weight2_t is None and weight3_t is None
-            ctx.weight = (weight1_origin, weight1_s, weight2_origin, weight2_s, weight3_origin, weight3_s)
+            ctx.weight = (
+                weight1_origin,
+                weight1_s,
+                weight2_origin,
+                weight2_s,
+                weight3_origin,
+                weight3_s,
+            )
         else:  # Weight1/2_t is different from the origin weight, so saving it will consumes additional memory footprint.
             ctx.weight = (weight1_t, weight1_s, weight2_t, weight2_s, weight3_t, weight3_s)
 
@@ -729,7 +754,14 @@ class _CoatLlamaMLPResidual(torch.autograd.Function):
 
         # Element-wise Multiplication, 1 means gate, 2 means up
         mul_g1, (mul_g2, mul_gs2, mul_g2_t) = fp8_mul_backward(
-            silu_x, silu_s, up_x, up_s, fc3_g, group_size, fwobits["babit"], output_quantized_transpose=True
+            silu_x,
+            silu_s,
+            up_x,
+            up_s,
+            fc3_g,
+            group_size,
+            fwobits["babit"],
+            output_quantized_transpose=True,
         )
 
         # Silu activation
@@ -1187,7 +1219,10 @@ class CoatLlamaDecoderLayer(nn.Module):
 
         # Residual Connection, LayerNorm, and the whole MLP module
         hidden_states, quant_hidden_states, scale_hidden_states = self.MLPResidual(
-            hidden_states, quant_hidden_states, scale_hidden_states, self.post_attention_layernorm.weight
+            hidden_states,
+            quant_hidden_states,
+            scale_hidden_states,
+            self.post_attention_layernorm.weight,
         )
 
         outputs = ((hidden_states, quant_hidden_states, scale_hidden_states),)
@@ -1311,7 +1346,9 @@ class CoatLlamaModel(CoatLlamaPreTrainedModel):
         if cache_position is None:
             past_seen_tokens = past_key_values.get_seq_length() if past_key_values is not None else 0
             cache_position = torch.arange(
-                past_seen_tokens, past_seen_tokens + inputs_embeds.shape[1], device=inputs_embeds.device
+                past_seen_tokens,
+                past_seen_tokens + inputs_embeds.shape[1],
+                device=inputs_embeds.device,
             )
         if position_ids is None:
             position_ids = cache_position.unsqueeze(0)
@@ -1471,5 +1508,3 @@ def make_state_dict_compatible(state_dict: dict[str, torch.Tensor]):
 AutoConfig.register("fp8_llama", CoatLlamaConfig)
 AutoModel.register(CoatLlamaConfig, CoatLlamaModel)
 AutoModelForCausalLM.register(CoatLlamaConfig, CoatLlamaForCausalLM)
-
-

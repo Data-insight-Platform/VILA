@@ -278,7 +278,21 @@ class _CoatOLMoBeforeAttentionResidual(torch.autograd.Function):
         in_g = in_g.view(torch.float8_e4m3fn)
 
         # Although the next operator is a linear layer in MLPResidual module, we return in_sg_g16 to make the size compatible with the forward. Otherwise it will not pass autograd.
-        return re_g, in_g, in_sg_g16, att_proj_wg, None, None, None, None, None, None, None, None, None
+        return (
+            re_g,
+            in_g,
+            in_sg_g16,
+            att_proj_wg,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
 
 
 class CoatOLMoAfterAttentionResidual(FP8CacheWeightModule):
@@ -347,7 +361,18 @@ class CoatOLMoAfterAttentionResidual(FP8CacheWeightModule):
 class _CoatOLMoAfterAttentionResidual(torch.autograd.Function):
     @staticmethod
     def forward(
-        ctx, re_x, flash_x, weight2_origin, weight2, weight2_t, weight2_s, group_size, fwobits, layer_id, config, qargs
+        ctx,
+        re_x,
+        flash_x,
+        weight2_origin,
+        weight2,
+        weight2_t,
+        weight2_s,
+        group_size,
+        fwobits,
+        layer_id,
+        config,
+        qargs,
     ):
         # Quantize the FlashAttention Output
         flash_qx, flash_s, _ = fp8_quantize_pertensor(
@@ -780,7 +805,9 @@ class CoatOLMoBlock(nn.Module):
             init_normal(self.ff_out, std=ff_out_std, init_cutoff_factor=cutoff_factor)
 
     def set_activation_checkpointing(
-        self, strategy: ActivationCheckpointingStrategy | None, checkpoint_func: Callable | None = None
+        self,
+        strategy: ActivationCheckpointingStrategy | None,
+        checkpoint_func: Callable | None = None,
     ):
         if strategy == ActivationCheckpointingStrategy.fine_grained:
             self._activation_checkpoint_fn = checkpoint_func or activation_checkpoint_function(self.config)
@@ -835,7 +862,11 @@ class CoatOLMoBlock(nn.Module):
             return r.view(B, T, -1, D).transpose(1, 2)
         elif self.flash_attn_func is not None and attn_mask is None:
             r = self.flash_attn_func(
-                q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2), dropout_p=dropout_p, causal=is_causal
+                q.transpose(1, 2),
+                k.transpose(1, 2),
+                v.transpose(1, 2),
+                dropout_p=dropout_p,
+                causal=is_causal,
             )
             return r.transpose(1, 2)
         else:
@@ -971,11 +1002,17 @@ class CoatOLMoSequentialBlock(CoatOLMoBlock):
             self.MLPResidual = CoatOLMoMLPResidual(config, qargs, self.layer_id, self.hidden_size)
         else:
             self.att_proj = nn.Linear(
-                config.d_model, sum(self.fused_dims), bias=config.include_bias, device=config.init_device
+                config.d_model,
+                sum(self.fused_dims),
+                bias=config.include_bias,
+                device=config.init_device,
             )
             # Feed-forward input projection.
             self.ff_proj = nn.Linear(
-                config.d_model, self.hidden_size, bias=config.include_bias, device=config.init_device
+                config.d_model,
+                self.hidden_size,
+                bias=config.include_bias,
+                device=config.init_device,
             )
 
         # Layer norms.
@@ -1187,7 +1224,10 @@ class CoatOLMoLlamaBlock(OLMoBlock):
         if is_causal:
             assert attn_mask is None
 
-            query_len, key_len = q.shape[-2], k.shape[-2]  # could be different if layer_past not None
+            query_len, key_len = (
+                q.shape[-2],
+                k.shape[-2],
+            )  # could be different if layer_past not None
             attn_bias = get_causal_attention_bias(self.__cache, key_len, q.device)[:, :, :query_len, :key_len]
         elif attn_mask is not None:
             attn_bias = attn_mask.to(q.dtype)
@@ -1314,7 +1354,9 @@ class CoatOLMoBlockGroup(nn.ModuleList):
             block.reset_parameters()
 
     def set_activation_checkpointing(
-        self, strategy: ActivationCheckpointingStrategy | None, checkpoint_func: Callable | None = None
+        self,
+        strategy: ActivationCheckpointingStrategy | None,
+        checkpoint_func: Callable | None = None,
     ):
         self.activation_checkpointing_strategy = strategy
         for block in self:
@@ -1342,7 +1384,8 @@ class CoatOLMo(nn.Module):
                 import warnings
 
                 warnings.warn(
-                    "Embedding size is not a multiple of 128! This could hurt throughput performance.", UserWarning
+                    "Embedding size is not a multiple of 128! This could hurt throughput performance.",
+                    UserWarning,
                 )
 
         self.activation_checkpointing_strategy: ActivationCheckpointingStrategy | None = None
@@ -1359,7 +1402,11 @@ class CoatOLMo(nn.Module):
 
         self.transformer = nn.ModuleDict(
             dict(
-                wte=nn.Embedding(config.embedding_size or config.vocab_size, config.d_model, device=config.init_device),
+                wte=nn.Embedding(
+                    config.embedding_size or config.vocab_size,
+                    config.d_model,
+                    device=config.init_device,
+                ),
                 emb_drop=Dropout(config.embedding_dropout),
                 ln_f=LayerNorm.build(config),
             )
@@ -1765,7 +1812,10 @@ class CoatOLMo(nn.Module):
 
     @classmethod
     def from_checkpoint(
-        cls, checkpoint_dir: PathOrStr, device: str = "cpu", checkpoint_type: CheckpointType | None = None
+        cls,
+        checkpoint_dir: PathOrStr,
+        device: str = "cpu",
+        checkpoint_type: CheckpointType | None = None,
     ) -> CoatOLMo:
         """
         Load an OLMo model from a checkpoint.
@@ -1905,7 +1955,8 @@ class CoatOLMo(nn.Module):
                         state_dict[
                             (
                                 new_key := key.replace(
-                                    f"block_groups.{group_idx}.{group_block_idx}.", f"blocks.{block_idx}."
+                                    f"block_groups.{group_idx}.{group_block_idx}.",
+                                    f"blocks.{block_idx}.",
                                 )
                             )
                         ] = state_dict.pop(key)
@@ -1923,7 +1974,8 @@ class CoatOLMo(nn.Module):
                         state_dict[
                             (
                                 new_key := key.replace(
-                                    f"blocks.{block_idx}.", f"block_groups.{group_idx}.{group_block_idx}."
+                                    f"blocks.{block_idx}.",
+                                    f"block_groups.{group_idx}.{group_block_idx}.",
                                 )
                             )
                         ] = state_dict.pop(key)
@@ -1934,5 +1986,3 @@ class CoatOLMo(nn.Module):
             og_keys_to_new[og_key].add(new_key)
 
         return state_dict, og_keys_to_new
-
-

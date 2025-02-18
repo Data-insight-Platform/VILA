@@ -6,7 +6,11 @@ from typing import Optional
 import torch
 import transformers
 from coat.activation.models._fp8_quantization_config import QuantizationConfig
-from coat.activation.models.coat_llama import CoatLlamaConfig, CoatLlamaForCausalLM, make_state_dict_compatible
+from coat.activation.models.coat_llama import (
+    CoatLlamaConfig,
+    CoatLlamaForCausalLM,
+    make_state_dict_compatible,
+)
 from transformers import AutoConfig, AutoModelForCausalLM
 
 
@@ -63,5 +67,3 @@ if __name__ == "__main__":
 
     # Call the function with parsed arguments
     download_and_convert_llama(convert_args, quantization_args)
-
-

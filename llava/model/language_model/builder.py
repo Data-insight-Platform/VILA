@@ -171,12 +171,20 @@ def build_llm_and_tokenizer(
         fp8_model_name_or_path = kwargs.pop("fp8_llm_cfg", None)
 
         llm = AutoModelForCausalLM.from_pretrained(
-            fp8_model_name_or_path, config=llm_cfg, torch_dtype=eval(config.model_dtype), *args, **kwargs
+            fp8_model_name_or_path,
+            config=llm_cfg,
+            torch_dtype=eval(config.model_dtype),
+            *args,
+            **kwargs,
         )
 
     else:
         llm = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path, config=llm_cfg, torch_dtype=eval(config.model_dtype), *args, **kwargs
+            model_name_or_path,
+            config=llm_cfg,
+            torch_dtype=eval(config.model_dtype),
+            *args,
+            **kwargs,
         )
     packing.patch(llm)
 
@@ -213,5 +221,3 @@ def build_llm_and_tokenizer(
     # TODO(ligeng): is this necessary for llava?
     config.hidden_size = llm.config.hidden_size
     return llm, tokenizer
-
-

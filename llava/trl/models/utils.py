@@ -90,7 +90,8 @@ def setup_chat_format(
 
     # resize embedding layer to a multiple of 64, https://x.com/karpathy/status/1621578354024677377
     model.resize_token_embeddings(
-        len(tokenizer), pad_to_multiple_of=resize_to_multiple_of if resize_to_multiple_of is not None else None
+        len(tokenizer),
+        pad_to_multiple_of=resize_to_multiple_of if resize_to_multiple_of is not None else None,
     )
     # Make sure to update the generation config to use the new eos & bos token
     if getattr(model, "generation_config", None) is not None:
@@ -99,5 +100,3 @@ def setup_chat_format(
         model.generation_config.pad_token_id = tokenizer.pad_token_id
 
     return model, tokenizer
-
-

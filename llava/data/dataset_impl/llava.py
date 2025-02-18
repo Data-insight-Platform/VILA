@@ -132,5 +132,3 @@ class LLaVANextVideoDataset(BaseDataset):
             new_value = [*img_list, value.replace(DEFAULT_IMAGE_TOKEN, "").strip()]
             messages[0]["value"] = new_value
         return messages
-
-

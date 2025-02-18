@@ -59,7 +59,6 @@ def _fp8_dequantize_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -154,5 +153,3 @@ def fp8_dequantize(x, s_x, QB):
         y = y.reshape(BS, -1, y.shape[-1])
 
     return y
-
-

@@ -140,8 +140,8 @@ class LlavaMetaModel(ABC):
         vlm.vision_tower = build_vision_tower(vision_tower_cfg, config)
         vlm.mm_projector = build_mm_projector(mm_projector_cfg, config)
 
-        self.post_config()
-        self.is_loaded = True
+        cls.post_config()
+        cls.is_loaded = True
 
         # FIXME(ligeng, yunhao): llm should never be none here.
         assert (
@@ -261,7 +261,8 @@ class LlavaMetaModel(ABC):
         x_merge = torch.cat(
             [
                 torch.cat(
-                    [x[(i * num_split_w + j) * b : (i * num_split_w + j + 1) * b] for j in range(num_split_w)], dim=-1
+                    [x[(i * num_split_w + j) * b : (i * num_split_w + j + 1) * b] for j in range(num_split_w)],
+                    dim=-1,
                 )
                 for i in range(num_split_h)
             ],
@@ -327,9 +328,11 @@ class LlavaMetaModel(ABC):
                 output_size = cur_features_each_scale[resize_output_to_scale_idx].shape[-2:]
                 cur_features = torch.cat(
                     [
-                        F.interpolate(cur_features_each_scale[i].to(torch.float32), size=output_size, mode="area").to(
-                            cur_features_each_scale[i].dtype
-                        )
+                        F.interpolate(
+                            cur_features_each_scale[i].to(torch.float32),
+                            size=output_size,
+                            mode="area",
+                        ).to(cur_features_each_scale[i].dtype)
                         for i in range(len(cur_features_each_scale))
                     ],
                     dim=1,
@@ -438,7 +441,12 @@ class LlavaMetaForCausalLM(ABC):
                     end = pos + 1
                     name = media_tokens[input_ids[k][pos].item()]
                     input = media_embeds[name].popleft()
-                    label = torch.full([input.shape[0]], IGNORE_INDEX, device=labels[k].device, dtype=labels[k].dtype)
+                    label = torch.full(
+                        [input.shape[0]],
+                        IGNORE_INDEX,
+                        device=labels[k].device,
+                        dtype=labels[k].dtype,
+                    )
                 else:
                     end = pos
                     while end < len(labels[k]) and input_ids[k][end].item() not in media_tokens:
@@ -630,13 +638,20 @@ class LlavaMetaForCausalLM(ABC):
                 max_new_seqlen = torch.max(new_seqlen_per_rank).item()
 
                 new_attention_mask = torch.zeros(
-                    (bs, max_new_seqlen), dtype=global_attention_mask.dtype, device=global_attention_mask.device
+                    (bs, max_new_seqlen),
+                    dtype=global_attention_mask.dtype,
+                    device=global_attention_mask.device,
                 )
                 new_position_ids = torch.zeros(
-                    (bs, max_new_seqlen), dtype=global_position_ids.dtype, device=global_position_ids.device
+                    (bs, max_new_seqlen),
+                    dtype=global_position_ids.dtype,
+                    device=global_position_ids.device,
                 )
                 new_labels = torch.full(
-                    (bs, max_new_seqlen), IGNORE_INDEX, dtype=global_labels.dtype, device=global_labels.device
+                    (bs, max_new_seqlen),
+                    IGNORE_INDEX,
+                    dtype=global_labels.dtype,
+                    device=global_labels.device,
                 )
                 new_inputs_embeds = torch.zeros(
                     (bs, max_new_seqlen, global_inputs_embeds.shape[-1]),
@@ -742,7 +757,11 @@ class LlavaMetaForCausalLM(ABC):
             self, "pad_to_multiple_of"
         ):  # related to quantization, please refer to ModelArguments for more information.
             assert len(labels_p.shape) == 2
-            batch_size, max_length, cur_length = labels_p.shape[0], labels_p.shape[1], labels_p.shape[1]
+            batch_size, max_length, cur_length = (
+                labels_p.shape[0],
+                labels_p.shape[1],
+                labels_p.shape[1],
+            )
             hidden_size = inputs_embeds_p.shape[-1]
 
             if max_length % self.pad_to_multiple_of != 0:
@@ -756,7 +775,10 @@ class LlavaMetaForCausalLM(ABC):
                     ),
                     dim=1,
                 )
-                labels_p = torch.cat((labels_p, torch.full((batch_size, difference), IGNORE_INDEX).to(labels_p)), dim=1)
+                labels_p = torch.cat(
+                    (labels_p, torch.full((batch_size, difference), IGNORE_INDEX).to(labels_p)),
+                    dim=1,
+                )
                 attention_mask_p = torch.cat(
                     (
                         attention_mask_p,
@@ -765,7 +787,8 @@ class LlavaMetaForCausalLM(ABC):
                     dim=1,
                 )
                 position_ids_p = torch.cat(
-                    (position_ids_p, torch.full((batch_size, difference), -1).to(position_ids_p)), dim=1
+                    (position_ids_p, torch.full((batch_size, difference), -1).to(position_ids_p)),
+                    dim=1,
                 )
 
         return inputs_embeds_p, attention_mask_p, position_ids_p, labels_p
@@ -796,7 +819,10 @@ class LlavaMetaForCausalLM(ABC):
         media_config = defaultdict(dict)
         for name in media:
             if name == "image":
-                if len(media["image"]) == 1 and self.config.image_aspect_ratio in ["dynamic", "dynamic_s2"]:
+                if len(media["image"]) == 1 and self.config.image_aspect_ratio in [
+                    "dynamic",
+                    "dynamic_s2",
+                ]:
                     self.config.image_processor = self.vision_tower.image_processor
                     if self.config.image_aspect_ratio == "dynamic":
                         images = process_image(media["image"][0], self.config, None, enable_dynamic_res=True).half()
@@ -867,5 +893,3 @@ class LlavaMetaForCausalLM(ABC):
         if generation_config.eos_token_id is None:
             generation_config.eos_token_id = self.tokenizer.stop_token_ids
         return generation_config
-
-

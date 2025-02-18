@@ -22,7 +22,13 @@ import triton.language as tl
 from triton.language.extra.cuda import libdevice
 
 from ._division import _stochastic_rounding
-from .common import FP8_MAX_VALUE, SCALE_MIN_THRES, convert_fp8_to_embit, convert_str_to_fp8, get_configs_io_block
+from .common import (
+    FP8_MAX_VALUE,
+    SCALE_MIN_THRES,
+    convert_fp8_to_embit,
+    convert_str_to_fp8,
+    get_configs_io_block,
+)
 
 """Division and Transpose Operator"""
 """Input uses full-precision/BF16"""
@@ -70,7 +76,6 @@ def _fp8_division_transpose_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -207,5 +212,3 @@ def fp8_division_transpose(x, QB, fp8type, s_y=None, stochastic=False, only_tran
         return y, s_y, y_t  # y_t is expected to be 2D tensor
     else:
         return y_t, s_y
-
-

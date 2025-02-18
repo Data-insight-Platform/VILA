@@ -25,7 +25,12 @@ import warnings
 import requests
 import torch
 import transformers
-from transformers.trainer_callback import TrainerCallback, TrainerControl, TrainerState, TrainingArguments
+from transformers.trainer_callback import (
+    TrainerCallback,
+    TrainerControl,
+    TrainerState,
+    TrainingArguments,
+)
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR, get_last_checkpoint
 
 
@@ -109,5 +114,3 @@ class TimeoutTerminateCallback(transformers.TrainerCallback):
     def on_train_end(self, args, state, control, **kwargs):
         if state.global_step < state.max_steps:
             exit(124)
-
-

@@ -22,7 +22,11 @@ import torch
 from accelerate import PartialState
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import IterableDataset
-from transformers import BitsAndBytesConfig, DataCollatorForLanguageModeling, PreTrainedTokenizerBase
+from transformers import (
+    BitsAndBytesConfig,
+    DataCollatorForLanguageModeling,
+    PreTrainedTokenizerBase,
+)
 
 from ..import_utils import is_peft_available, is_unsloth_available, is_xpu_available
 from ..trainer.model_config import ModelConfig
@@ -130,7 +134,7 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                 if response_token_ids_start_idx is None:
                     warnings.warn(
                         f"Could not find response key `{self.response_template}` in the "
-                        f'following instance: {self.tokenizer.decode(batch["input_ids"][i])} '
+                        f"following instance: {self.tokenizer.decode(batch['input_ids'][i])} "
                         f"This instance will be ignored in loss calculation. "
                         f"Note, if this happens often, consider increasing the `max_seq_length`."
                     )
@@ -157,7 +161,7 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                 if len(response_token_ids_idxs) == 0:
                     warnings.warn(
                         f"Could not find response key `{self.response_template}` in the "
-                        f'following instance: {self.tokenizer.decode(batch["input_ids"][i])} '
+                        f"following instance: {self.tokenizer.decode(batch['input_ids'][i])} "
                         f"This instance will be ignored in loss calculation. "
                         f"Note, if this happens often, consider increasing the `max_seq_length`."
                     )
@@ -172,7 +176,7 @@ class DataCollatorForCompletionOnlyLM(DataCollatorForLanguageModeling):
                 if len(human_token_ids_idxs) == 0:
                     warnings.warn(
                         f"Could not find instruction key `{self.instruction_template}` in the "
-                        f'following instance: {self.tokenizer.decode(batch["input_ids"][i])} '
+                        f"following instance: {self.tokenizer.decode(batch['input_ids'][i])} "
                         f"This instance will be ignored in loss calculation. "
                         f"Note, if this happens often, consider increasing the `max_seq_length`."
                     )
@@ -292,6 +296,7 @@ class DPODataCollatorWithPadding:
         is_encoder_decoder (`Optional[bool]`, `optional`, defaults to `None`):
             Whether or not you model has an encoder_decoder architecture.
     """
+
     tokenizer: PreTrainedTokenizerBase
     pad_token_id: int = 0
     label_pad_token_id: int = -100
@@ -722,5 +727,3 @@ def get_peft_config(model_config: ModelConfig) -> "Optional[PeftConfig]":
     )
 
     return peft_config
-
-

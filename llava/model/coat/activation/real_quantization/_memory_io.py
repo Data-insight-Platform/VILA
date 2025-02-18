@@ -23,6 +23,7 @@ from triton.language.extra.cuda import libdevice
 
 CONST_BLOCK = 32
 
+
 # The kernel with 1 load operation and 4 store operation
 def get_configs_io_block():
     configs = []
@@ -60,7 +61,6 @@ def bench_memory_io_kernel_forward(
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_M = tl.cdiv(M, BLOCK_M)
@@ -172,5 +172,3 @@ if __name__ == "__main__":
     torch.manual_seed(0)
     torch.set_printoptions(precision=8, linewidth=1600, sci_mode=False, edgeitems=3)
     bench_load_store.run(print_data=True)
-
-

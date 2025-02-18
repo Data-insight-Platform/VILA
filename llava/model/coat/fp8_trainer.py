@@ -13,7 +13,11 @@ from torch.utils.data import DataLoader, Dataset, IterableDataset, RandomSampler
 from transformers import Trainer
 from transformers.debug_utils import DebugOption, DebugUnderflowOverflow
 from transformers.integrations import hp_params
-from transformers.integrations.deepspeed import deepspeed_init, deepspeed_load_checkpoint, is_deepspeed_available
+from transformers.integrations.deepspeed import (
+    deepspeed_init,
+    deepspeed_load_checkpoint,
+    is_deepspeed_available,
+)
 from transformers.integrations.tpu import tpu_spmd_dataloader
 from transformers.trainer_callback import ExportableState, TrainerState
 from transformers.trainer_pt_utils import get_model_param_count
@@ -72,7 +76,12 @@ if is_sagemaker_mp_enabled():
 
     IS_SAGEMAKER_MP_POST_1_10 = version.parse(SMP_VERSION) >= version.parse("1.10")
 
-    from .trainer_pt_utils import smp_forward_backward, smp_forward_only, smp_gather, smp_nested_concat
+    from .trainer_pt_utils import (
+        smp_forward_backward,
+        smp_forward_only,
+        smp_gather,
+        smp_nested_concat,
+    )
 else:
     IS_SAGEMAKER_MP_POST_1_10 = False
 
@@ -117,7 +126,12 @@ logger = logging.get_logger(__name__)
 
 class CoatFP8Trainer(Trainer):
     def _inner_training_loop(
-        self, batch_size=None, args=None, resume_from_checkpoint=None, trial=None, ignore_keys_for_eval=None
+        self,
+        batch_size=None,
+        args=None,
+        resume_from_checkpoint=None,
+        trial=None,
+        ignore_keys_for_eval=None,
     ):
         self.accelerator.free_memory()
         self._train_batch_size = batch_size
@@ -286,7 +300,9 @@ class CoatFP8Trainer(Trainer):
         if resume_from_checkpoint is not None:
             if self.is_deepspeed_enabled:
                 deepspeed_load_checkpoint(
-                    self.model_wrapped, resume_from_checkpoint, load_module_strict=not _is_peft_model(self.model)
+                    self.model_wrapped,
+                    resume_from_checkpoint,
+                    load_module_strict=not _is_peft_model(self.model),
                 )
             elif is_sagemaker_mp_enabled() or self.is_fsdp_enabled:
                 self._load_from_checkpoint(resume_from_checkpoint, self.model_wrapped)
@@ -422,7 +438,9 @@ class CoatFP8Trainer(Trainer):
                             torch.sum(
                                 self.accelerator.gather(
                                     torch.tensor(
-                                        inputs[main_input_name].numel(), device=self.args.device, dtype=torch.int64
+                                        inputs[main_input_name].numel(),
+                                        device=self.args.device,
+                                        dtype=torch.int64,
                                     )
                                 )
                             )
@@ -618,5 +636,3 @@ class CoatFP8Trainer(Trainer):
             self._deactivate_neftune(self.model)
 
         return TrainOutput(self.state.global_step, train_loss, metrics)
-
-

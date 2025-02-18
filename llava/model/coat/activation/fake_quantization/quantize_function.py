@@ -170,11 +170,23 @@ class SymmQuantizer(torch.autograd.function.InplaceFunction):
             if bits == "100" or not apply_quantize:
                 return input, input, torch.ones_like(absmax_per_block)
             elif bits == "FP32":
-                return input.to(torch.float32), input.to(torch.float32), torch.ones_like(absmax_per_block)
+                return (
+                    input.to(torch.float32),
+                    input.to(torch.float32),
+                    torch.ones_like(absmax_per_block),
+                )
             elif bits == "FP16":
-                return input.to(torch.float16), input.to(torch.float16), torch.ones_like(absmax_per_block)
+                return (
+                    input.to(torch.float16),
+                    input.to(torch.float16),
+                    torch.ones_like(absmax_per_block),
+                )
             elif bits == "BF16":
-                return input.to(torch.bfloat16), input.to(torch.bfloat16), torch.ones_like(absmax_per_block)
+                return (
+                    input.to(torch.bfloat16),
+                    input.to(torch.bfloat16),
+                    torch.ones_like(absmax_per_block),
+                )
             else:
                 QuantType, bit1, bit2 = extract_bit(bits)
                 if not symm:
@@ -183,8 +195,9 @@ class SymmQuantizer(torch.autograd.function.InplaceFunction):
                 if QuantType == "integer":
                     Qn, Qp = -(2 ** (bit1 - 1) - 1), 2 ** (bit1 - 1) - 1
                 elif QuantType == "floatExMy":
-                    Qn, Qp = -(2 - 2 ** (-bit2)) * (2 ** (2 ** (bit1 - 1))), (2 - 2 ** (-bit2)) * (
-                        2 ** (2 ** (bit1 - 1))
+                    Qn, Qp = (
+                        -(2 - 2 ** (-bit2)) * (2 ** (2 ** (bit1 - 1))),
+                        (2 - 2 ** (-bit2)) * (2 ** (2 ** (bit1 - 1))),
                     )
                     if bit1 == 4 and bit2 == 3:  # E4M3
                         Qn, Qp = -448, 448
@@ -231,5 +244,3 @@ class SymmQuantizer(torch.autograd.function.InplaceFunction):
     @staticmethod
     def backward(ctx, grad_output):
         return grad_output, None, None, None, None, None
-
-

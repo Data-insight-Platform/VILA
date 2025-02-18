@@ -13,6 +13,7 @@ from .division_transpose import fp8_division_transpose
 """Output uses per-tensor quantization, returns a non-transpose version and a transpose version"""
 """The input can be 2D or 3D, but the calculation is performed in 2D"""
 
+
 # The kernel with 1 load operation and 4 store operation
 def get_configs_io_block():
     configs = []
@@ -62,7 +63,6 @@ def _fp8_quantize_and_transpose_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -166,7 +166,13 @@ for SL in [8192]:
             styles=[("blue", "-"), ("green", "-")],
             ylabel="time-cost",
             plot_name=f"FP8gelu<SL={SL}>",
-            args={"BS": 4, "SL": SL, "QB": 16, "fp8type": torch.float8_e4m3fn, "mode": "time-consuming"},
+            args={
+                "BS": 4,
+                "SL": SL,
+                "QB": 16,
+                "fp8type": torch.float8_e4m3fn,
+                "mode": "time-consuming",
+            },
         )
     )
 
@@ -231,5 +237,3 @@ if __name__ == "__main__":
     torch.set_printoptions(precision=8, linewidth=1600, sci_mode=False, edgeitems=3)
     validity_check(BS=4, SL=256, CDIM=512, QB=16, fp8type=torch.float8_e4m3fn)
     bench_load_store.run(save_path=f"result/time/multi_quantize_block_quantize/BLSZ=64", print_data=True)
-
-

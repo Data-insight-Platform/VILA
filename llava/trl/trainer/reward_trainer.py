@@ -19,7 +19,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn as nn
 from datasets import Dataset
-from transformers import DataCollator, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
+from transformers import (
+    DataCollator,
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
+    Trainer,
+    TrainingArguments,
+)
 from transformers.trainer_callback import TrainerCallback
 from transformers.trainer_pt_utils import nested_detach
 from transformers.trainer_utils import EvalPrediction
@@ -272,5 +278,3 @@ class RewardTrainer(Trainer):
         labels = self._prepare_inputs(labels)
 
         return loss, logits, labels
-
-

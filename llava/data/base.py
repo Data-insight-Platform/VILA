@@ -5,7 +5,11 @@ import torch
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer
 
-from llava.mm_utils import dynamic_process_images_and_prompt, dynamic_s2_process_images_and_prompt, process_images
+from llava.mm_utils import (
+    dynamic_process_images_and_prompt,
+    dynamic_s2_process_images_and_prompt,
+    process_images,
+)
 from llava.train.args import DataArguments
 from llava.utils.logging import logger
 from llava.utils.media import extract_media
@@ -84,5 +88,3 @@ class BaseDataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.instances)
-
-

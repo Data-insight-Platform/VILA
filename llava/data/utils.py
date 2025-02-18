@@ -35,5 +35,3 @@ class VILAEncodedVideo(EncodedVideo):
             print(f"unsupported type {type(file_path)}")
         video_cls = select_video_class(decoder)
         return video_cls(video_file, pathlib.Path(file_path).name, decode_audio)
-
-

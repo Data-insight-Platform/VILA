@@ -74,7 +74,6 @@ class HybridAttention(torch.nn.Module):
         use_pack_qkv: bool = False,
         attention_warper: Module = None,
     ) -> None:
-
         super().__init__()
         self.ring_pg = get_ring_sp_pg()
         self.ulysses_pg = get_ulysses_sp_pg()
@@ -121,7 +120,6 @@ class HybridAttention(torch.nn.Module):
         # 3 X (bs, seq_len/N, head_cnt, head_size) -> 3 X (bs, seq_len, head_cnt/N, head_size)
         # scatter 2, gather 1
         if self.use_pack_qkv:
-
             # TODO (Qinghao): To support packed qkv
             raise NotImplementedError("Packed qkv is not supported yet.")
             # (3*bs, seq_len/N, head_cnt, head_size)
@@ -207,7 +205,6 @@ class HybridAttentionQKVPacked(torch.nn.Module):
         gather_idx: int = 1,
         ring_impl_type: str = "zigzag",
     ) -> None:
-
         super().__init__()
 
         self.ring_pg = get_ring_sp_pg()
@@ -295,7 +292,6 @@ class AsyncHybridAttention(torch.nn.Module):
         gather_idx: int = 1,
         ring_impl_type: str = "zigzag",
     ) -> None:
-
         super().__init__()
         self.ring_pg = get_ring_sp_pg()
         self.ulysses_pg = get_ulysses_sp_pg()
@@ -458,5 +454,3 @@ class AsyncHybridAttention(torch.nn.Module):
 
     def backward(self, *args, **kwargs):
         raise RuntimeError("Backward computation is not allowed for AsyncHybridAttention.")
-
-

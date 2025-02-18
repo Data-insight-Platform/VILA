@@ -16,5 +16,3 @@ class Image(File):
 
 class Video(File):
     pass
-
-

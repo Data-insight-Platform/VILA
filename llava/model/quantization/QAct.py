@@ -51,8 +51,14 @@ class QAct_FPout(nn.Identity):
             print(quantize_flag)
 
     def refine_rowcol_blocksize(self):
-        self.args.row_blocksize_f, self.args.col_blocksize_f = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_b, self.args.col_blocksize_b = self.args.row_blocksize, self.args.col_blocksize
+        self.args.row_blocksize_f, self.args.col_blocksize_f = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_b, self.args.col_blocksize_b = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
         if self.args.refine_residual_fp:
             if self.layer_type in ["add_attn_in_re", "add_mlp_in_re"]:
                 self.apply_quantize_f, self.apply_quantize_b = False, False
@@ -209,7 +215,12 @@ class QAct_FPout(nn.Identity):
         # input shape is (Batch Size, Sequence Length, Hidden Size)
         if self.training:
             return QuantAct_FPout.apply(
-                Qinput, Iscale, self.args, self.layer_name, self.apply_quantize_f, self.apply_quantize_b
+                Qinput,
+                Iscale,
+                self.args,
+                self.layer_name,
+                self.apply_quantize_f,
+                self.apply_quantize_b,
             )
         else:
             return Qinput
@@ -253,7 +264,14 @@ class QuantAct_FPout(Function):
         Qgrad_output = block_reshape(Qgrad_output, grad_output, args.row_blocksize_b, args.col_blocksize_b)
 
         if args.draw_distribution_backward:
-            save_tensor(grad_output, RQgrad_output, Qgrad_output, fb="backward", aw="Activation", layer_name=layer_name)
+            save_tensor(
+                grad_output,
+                RQgrad_output,
+                Qgrad_output,
+                fb="backward",
+                aw="Activation",
+                layer_name=layer_name,
+            )
 
         # enlarge grad_output to let the size of gradient the same as forward
         ideal_scale_num = grad_output.numel() / (args.min_blockunit_row * args.min_blockunit_col)
@@ -299,8 +317,14 @@ class QAct_FPin(nn.Identity):
             print(quantize_flag)
 
     def refine_rowcol_blocksize(self):
-        self.args.row_blocksize_f, self.args.col_blocksize_f = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_b, self.args.col_blocksize_b = self.args.row_blocksize, self.args.col_blocksize
+        self.args.row_blocksize_f, self.args.col_blocksize_f = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_b, self.args.col_blocksize_b = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
 
         if self.args.refine_residual_fp:
             if self.layer_type in ["re_attn_out_re", "re_mlp_out_re"]:
@@ -509,5 +533,3 @@ if __name__ == "__main__":
     print(if_nan)
 
     Q = block_quant(Binput, True, 8, stochastic=False, epsilon=1e-8)
-
-

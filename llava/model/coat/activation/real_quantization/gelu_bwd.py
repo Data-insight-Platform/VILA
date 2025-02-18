@@ -69,7 +69,6 @@ def _fp8_gelu_backward_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -227,5 +226,3 @@ def fp8_gelu_backward(x, s_x, g, QB, fp8type):
         s_y = s_y.reshape(BS, -1, s_y.shape[-1])
 
     return qy, s_y_max
-
-

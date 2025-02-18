@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Image processor class for RADIO."""
+
 import math
 from copy import deepcopy
 from itertools import product
@@ -544,5 +545,3 @@ class ImageProcessor(BaseImageProcessor):
         }
 
         return BatchFeature(data=data, tensor_type=return_tensors)
-
-

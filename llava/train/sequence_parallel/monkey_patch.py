@@ -28,7 +28,10 @@ from transformers.utils import is_flash_attn_greater_or_equal
 from llava.model.utils.packing import _get_unpad_data
 from llava.train.sequence_parallel.globals import get_ring_sp_pg, get_ring_type, get_ulysses_sp_pg
 from llava.train.sequence_parallel.hybrid_attn import HybridAttention
-from llava.train.sequence_parallel.ring import ring_flash_attn_varlen_func, zigzag_ring_flash_attn_varlen_func
+from llava.train.sequence_parallel.ring import (
+    ring_flash_attn_varlen_func,
+    zigzag_ring_flash_attn_varlen_func,
+)
 from llava.train.sequence_parallel.ulysses_attn import UlyssesAttention
 
 
@@ -248,5 +251,3 @@ def _update_causal_mask(
     output_attentions: bool,
 ):
     return attention_mask
-
-

@@ -225,7 +225,11 @@ def stats_to_np(stats_dict: Dict) -> Dict:
 
 
 def respond_to_batch(
-    model: nn.Module, queries: List[torch.LongTensor], txt_len: int = 20, top_k: int = 0, top_p: float = 1.0
+    model: nn.Module,
+    queries: List[torch.LongTensor],
+    txt_len: int = 20,
+    top_k: int = 0,
+    top_p: float = 1.0,
 ) -> torch.LongTensor:
     """Sample text from language model."""
     input_ids = queries
@@ -339,5 +343,3 @@ def randn_tensor(
         latents = torch.randn(shape, generator=generator, device=rand_device, dtype=dtype, layout=layout).to(device)
 
     return latents
-
-

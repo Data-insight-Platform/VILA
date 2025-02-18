@@ -116,6 +116,7 @@ class SFTTrainer(Trainer):
         dataset_kwargs: (`Optional[Dict]`, *optional*):
             Dict of Optional kwargs to pass when creating packed or non-packed datasets
     """
+
     _tag_names = ["trl", "sft"]
 
     def __init__(
@@ -366,7 +367,10 @@ class SFTTrainer(Trainer):
             raise ValueError("The dataset should not be None")
 
         # check if torch dataset / dataloader and do nothing
-        if isinstance(dataset, (torch.utils.data.IterableDataset, torch.utils.data.Dataset, ConstantLengthDataset)):
+        if isinstance(
+            dataset,
+            (torch.utils.data.IterableDataset, torch.utils.data.Dataset, ConstantLengthDataset),
+        ):
             return dataset
 
         if not packing:
@@ -483,7 +487,8 @@ class SFTTrainer(Trainer):
 
             try:
                 packed_dataset = Dataset.from_generator(
-                    data_generator, gen_kwargs={"constant_length_iterator": constant_length_iterator}
+                    data_generator,
+                    gen_kwargs={"constant_length_iterator": constant_length_iterator},
                 )
             except (DatasetGenerationError, SchemaInferenceError):
                 raise ValueError(
@@ -510,5 +515,3 @@ class SFTTrainer(Trainer):
         hook_handle = embeddings.register_forward_hook(neftune_post_forward_hook)
         self.neftune_hook_handle = hook_handle
         return model
-
-
