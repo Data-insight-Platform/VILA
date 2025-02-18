@@ -526,7 +526,13 @@ def pipeline_step(
 
 
 class DefaultDDPOStableDiffusionPipeline(DDPOStableDiffusionPipeline):
-    def __init__(self, pretrained_model_name: str, *, pretrained_model_revision: str = "main", use_lora: bool = True):
+    def __init__(
+        self,
+        pretrained_model_name: str,
+        *,
+        pretrained_model_revision: str = "main",
+        use_lora: bool = True,
+    ):
         self.sd_pipeline = StableDiffusionPipeline.from_pretrained(
             pretrained_model_name, revision=pretrained_model_revision
         )
@@ -642,5 +648,3 @@ class DefaultDDPOStableDiffusionPipeline(DDPOStableDiffusionPipeline):
             del load_model
         else:
             raise ValueError(f"Unknown model type {type(models[0])}")
-
-

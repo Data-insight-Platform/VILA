@@ -29,7 +29,12 @@ from huggingface_hub.utils import (
 from safetensors.torch import load_file as safe_load_file
 from transformers import PreTrainedModel
 
-from ..import_utils import is_npu_available, is_peft_available, is_transformers_greater_than, is_xpu_available
+from ..import_utils import (
+    is_npu_available,
+    is_peft_available,
+    is_transformers_greater_than,
+    is_xpu_available,
+)
 
 if is_peft_available():
     from peft import (
@@ -69,6 +74,7 @@ class PreTrainedModelWrapper(nn.Module):
         supported_args: (`list`)
             The list of arguments that are supported by the wrapper class.
     """
+
     transformers_parent_class = None
     supported_args = None
     supported_modules = ("v_head",)
@@ -78,7 +84,12 @@ class PreTrainedModelWrapper(nn.Module):
     )
 
     def __init__(
-        self, pretrained_model=None, score_module=None, supports_rm_adapter=False, rm_adapter_name=None, **kwargs
+        self,
+        pretrained_model=None,
+        score_module=None,
+        supports_rm_adapter=False,
+        rm_adapter_name=None,
+        **kwargs,
     ):
         super().__init__()
         self.pretrained_model = pretrained_model
@@ -179,7 +190,12 @@ class PreTrainedModelWrapper(nn.Module):
                         "adapter_config.json",
                         token=token,
                     )
-                except (EntryNotFoundError, LocalEntryNotFoundError, HFValidationError, RepositoryNotFoundError):
+                except (
+                    EntryNotFoundError,
+                    LocalEntryNotFoundError,
+                    HFValidationError,
+                    RepositoryNotFoundError,
+                ):
                     remote_adapter_config = None
             else:
                 remote_adapter_config = None
@@ -355,7 +371,12 @@ class PreTrainedModelWrapper(nn.Module):
                 token=token,
             )
         # sharded
-        except (EntryNotFoundError, LocalEntryNotFoundError, HFValidationError, RepositoryNotFoundError):
+        except (
+            EntryNotFoundError,
+            LocalEntryNotFoundError,
+            HFValidationError,
+            RepositoryNotFoundError,
+        ):
             if os.path.exists(index_filename):
                 index_file_name = index_filename
             else:
@@ -365,7 +386,12 @@ class PreTrainedModelWrapper(nn.Module):
                         model_index_name,
                         token=token,
                     )
-                except (EntryNotFoundError, LocalEntryNotFoundError, HFValidationError, RepositoryNotFoundError):
+                except (
+                    EntryNotFoundError,
+                    LocalEntryNotFoundError,
+                    HFValidationError,
+                    RepositoryNotFoundError,
+                ):
                     # not continue training, do not have v_head weight
                     is_resuming_training = False
                     logging.warning(
@@ -669,5 +695,3 @@ def create_reference_model(
         logging.warning("Pattern passed or found, but no layers matched in the model. Check for a typo.")
 
     return ref_model.eval()
-
-

@@ -21,7 +21,13 @@ import triton
 import triton.language as tl
 from triton.language.extra.cuda import libdevice
 
-from .common import FP8_MAX_VALUE, SCALE_MIN_THRES, convert_fp8_to_embit, convert_str_to_fp8, get_configs_io_block
+from .common import (
+    FP8_MAX_VALUE,
+    SCALE_MIN_THRES,
+    convert_fp8_to_embit,
+    convert_str_to_fp8,
+    get_configs_io_block,
+)
 
 """Quantize Operator"""
 """Input uses 1 * 16 group quantization"""
@@ -61,7 +67,6 @@ def _fp8_quantize_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -168,5 +173,3 @@ def fp8_quantize(x, QB, fp8type):
         s_y = s_y.reshape(BS, -1, s_y.shape[-1])
 
     return y, s_y
-
-

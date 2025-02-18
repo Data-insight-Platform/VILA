@@ -22,7 +22,13 @@ import triton.language as tl
 from triton.language.extra.cuda import libdevice
 
 from ._division_transpose import fp8_division_transpose
-from .common import FP8_MAX_VALUE, SCALE_MIN_THRES, convert_fp8_to_embit, convert_str_to_fp8, get_configs_io_block
+from .common import (
+    FP8_MAX_VALUE,
+    SCALE_MIN_THRES,
+    convert_fp8_to_embit,
+    convert_str_to_fp8,
+    get_configs_io_block,
+)
 
 """Element-wise Multiplication Backward"""
 """Input1 (Gate) uses 1 * 16 group quantization"""
@@ -83,7 +89,6 @@ def _fp8_mul_backward_silu_forward_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -329,5 +334,3 @@ def fp8_mul_backward_silu_forward(
             s_y2 = s_y2.reshape(BS, -1, s_y2.shape[-1])
 
         return y1, (qy2, s_y2_max, qy2_t)
-
-

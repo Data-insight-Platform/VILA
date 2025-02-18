@@ -18,7 +18,11 @@ from flash_attn import flash_attn_func
 from torch import Tensor
 from torch.nn import Module
 
-from llava.train.sequence_parallel.globals import get_ulysses_seq_len, get_ulysses_sp_rank, get_ulysses_sp_size
+from llava.train.sequence_parallel.globals import (
+    get_ulysses_seq_len,
+    get_ulysses_sp_rank,
+    get_ulysses_sp_size,
+)
 
 from .all_to_all import SeqAllGather, SeqAllToAll4D, SeqAllToAll5D
 
@@ -35,7 +39,6 @@ class _ExpandKVFunction(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, k, v, repeat_times, num_head_dim):
-
         kv_shape = k.shape
         num_heads_kv = kv_shape[num_head_dim]
 
@@ -111,7 +114,6 @@ class UlyssesAttention(torch.nn.Module):
         scatter_idx: int = 2,
         gather_idx: int = 1,
     ) -> None:
-
         super().__init__()
         self.local_attn = local_attention
         self.spg = sequence_process_group
@@ -173,7 +175,10 @@ class UlyssesAttention(torch.nn.Module):
                             [
                                 local_attention_mask,
                                 torch.zeros(
-                                    (local_attention_mask.size(0), max_global_length - shard_seqlen),
+                                    (
+                                        local_attention_mask.size(0),
+                                        max_global_length - shard_seqlen,
+                                    ),
                                     dtype=local_attention_mask.dtype,
                                     device=local_attention_mask.device,
                                 ),
@@ -229,5 +234,3 @@ class UlyssesAttention(torch.nn.Module):
 
         # out e.g., [s/p::h]
         return output
-
-

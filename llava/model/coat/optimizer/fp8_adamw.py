@@ -172,18 +172,19 @@ class CoatAdamW(Optimizer):
         saved_groups = deepcopy(state_dict["param_groups"])
 
         if len(groups) != len(saved_groups):
-            raise ValueError("loaded state dict has a different number of " "parameter groups")
+            raise ValueError("loaded state dict has a different number of parameter groups")
         param_lens = (len(g["params"]) for g in groups)
         saved_lens = (len(g["params"]) for g in saved_groups)
         if any(p_len != s_len for p_len, s_len in zip(param_lens, saved_lens)):
             raise ValueError(
-                "loaded state dict contains a parameter group " "that doesn't match the size of optimizer's group"
+                "loaded state dict contains a parameter group that doesn't match the size of optimizer's group"
             )
 
         # Update the state
         id_map = dict(
             zip(
-                chain.from_iterable(g["params"] for g in saved_groups), chain.from_iterable(g["params"] for g in groups)
+                chain.from_iterable(g["params"] for g in saved_groups),
+                chain.from_iterable(g["params"] for g in groups),
             )
         )
 
@@ -437,7 +438,6 @@ def _single_tensor_Coatadamw(
     qgroup_size: int,
     expand_min: int,
 ):
-
     assert grad_scale is None and found_inf is None
 
     if torch.jit.is_scripting():
@@ -507,5 +507,3 @@ def _single_tensor_Coatadamw(
                 step,
                 qgroup_size,
             )
-
-

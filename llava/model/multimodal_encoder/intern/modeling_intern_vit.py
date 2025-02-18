@@ -88,9 +88,7 @@ def drop_block_2d(
     total_size = W * H
     clipped_block_size = min(block_size, min(W, H))
     # seed_drop_rate, the gamma parameter
-    gamma = (
-        gamma_scale * drop_prob * total_size / clipped_block_size**2 / ((W - block_size + 1) * (H - block_size + 1))
-    )
+    gamma = gamma_scale * drop_prob * total_size / clipped_block_size**2 / ((W - block_size + 1) * (H - block_size + 1))
 
     # Forces the block to be inside the feature map.
     w_i, h_i = ndgrid(torch.arange(W, device=x.device), torch.arange(H, device=x.device))
@@ -106,7 +104,10 @@ def drop_block_2d(
         uniform_noise = torch.rand_like(x)
     block_mask = ((2 - gamma - valid_block + uniform_noise) >= 1).to(dtype=x.dtype)
     block_mask = -F.max_pool2d(
-        -block_mask, kernel_size=clipped_block_size, stride=1, padding=clipped_block_size // 2  # block_size,
+        -block_mask,
+        kernel_size=clipped_block_size,
+        stride=1,
+        padding=clipped_block_size // 2,  # block_size,
     )
 
     if with_noise:
@@ -140,13 +141,14 @@ def drop_block_fast_2d(
     B, C, H, W = x.shape
     total_size = W * H
     clipped_block_size = min(block_size, min(W, H))
-    gamma = (
-        gamma_scale * drop_prob * total_size / clipped_block_size**2 / ((W - block_size + 1) * (H - block_size + 1))
-    )
+    gamma = gamma_scale * drop_prob * total_size / clipped_block_size**2 / ((W - block_size + 1) * (H - block_size + 1))
 
     block_mask = torch.empty_like(x).bernoulli_(gamma)
     block_mask = F.max_pool2d(
-        block_mask.to(x.dtype), kernel_size=clipped_block_size, stride=1, padding=clipped_block_size // 2
+        block_mask.to(x.dtype),
+        kernel_size=clipped_block_size,
+        stride=1,
+        padding=clipped_block_size // 2,
     )
 
     if with_noise:
@@ -196,7 +198,13 @@ class DropBlock2d(nn.Module):
             )
         else:
             return drop_block_2d(
-                x, self.drop_prob, self.block_size, self.gamma_scale, self.with_noise, self.inplace, self.batchwise
+                x,
+                self.drop_prob,
+                self.block_size,
+                self.gamma_scale,
+                self.with_noise,
+                self.inplace,
+                self.batchwise,
             )
 
 
@@ -232,7 +240,7 @@ class DropPath(nn.Module):
         return drop_path(x, self.drop_prob, self.training, self.scale_by_keep)
 
     def extra_repr(self):
-        return f"drop_prob={round(self.drop_prob,3):0.3f}"
+        return f"drop_prob={round(self.drop_prob, 3):0.3f}"
 
 
 class InternRMSNorm(nn.Module):
@@ -276,7 +284,10 @@ class InternVisionEmbeddings(nn.Module):
         )
 
         self.patch_embedding = nn.Conv2d(
-            in_channels=3, out_channels=self.embed_dim, kernel_size=self.patch_size, stride=self.patch_size
+            in_channels=3,
+            out_channels=self.embed_dim,
+            kernel_size=self.patch_size,
+            stride=self.patch_size,
         )
 
         self.num_patches = (self.image_size // self.patch_size) ** 2
@@ -541,5 +552,3 @@ class InternVisionModel(PreTrainedModel):
             hidden_states=encoder_outputs.hidden_states,
             attentions=encoder_outputs.attentions,
         )
-
-

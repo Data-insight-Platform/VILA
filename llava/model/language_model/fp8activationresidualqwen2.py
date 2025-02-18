@@ -158,7 +158,10 @@ class FP8ActivationResidualQwen2BeforeAttentionResidual(FP8CacheWeightModule):
     """
 
     def __init__(
-        self, config: FP8ActivationResidualQwen2Config, qargs: QuantizationConfig, layer_idx: Optional[int] = None
+        self,
+        config: FP8ActivationResidualQwen2Config,
+        qargs: QuantizationConfig,
+        layer_idx: Optional[int] = None,
     ):
         super().__init__(config, qargs, layer_idx)
 
@@ -322,7 +325,14 @@ class _FP8ActivationResidualQwen2BeforeAttentionResidual(torch.autograd.Function
         ctx.save_for_backward(in_x, in_s, ln_x_t, ln_s)
         if qargs.weight_memory_efficient:
             assert weight1_t is None and weight2_t is None and weight3_t is None
-            ctx.weight = weight1_origin, weight1_s, weight2_origin, weight2_s, weight3_origin, weight3_s
+            ctx.weight = (
+                weight1_origin,
+                weight1_s,
+                weight2_origin,
+                weight2_s,
+                weight3_origin,
+                weight3_s,
+            )
         else:
             ctx.weight = weight1_t, weight1_s, weight2_t, weight2_s, weight3_t, weight3_s
         ctx.bias = weight1_bias, weight2_bias, weight3_bias
@@ -588,7 +598,13 @@ class FP8ActivationResidualQwen2MLPResidual(FP8CacheWeightModule):
     (4) GELU / Silu Activation
     """
 
-    def __init__(self, config: FP8ActivationResidualQwen2Config, qargs: QuantizationConfig, layer_id, hidden_size: int):
+    def __init__(
+        self,
+        config: FP8ActivationResidualQwen2Config,
+        qargs: QuantizationConfig,
+        layer_id,
+        hidden_size: int,
+    ):
         super().__init__(config, qargs, layer_id)
 
         self.qargs = qargs
@@ -763,7 +779,14 @@ class _FP8ActivationResidualQwen2MLPResidual(torch.autograd.Function):
             qargs.weight_memory_efficient
         ):  # Weight_1/2_origin will not be saved twice, so it will be more memory efficient.
             assert weight1_t is None and weight2_t is None and weight3_t is None
-            ctx.weight = (weight1_origin, weight1_s, weight2_origin, weight2_s, weight3_origin, weight3_s)
+            ctx.weight = (
+                weight1_origin,
+                weight1_s,
+                weight2_origin,
+                weight2_s,
+                weight3_origin,
+                weight3_s,
+            )
         else:  # Weight1/2_t is different from the origin weight, so saving it will consumes additional memory footprint.
             ctx.weight = (weight1_t, weight1_s, weight2_t, weight2_s, weight3_t, weight3_s)
 
@@ -812,7 +835,14 @@ class _FP8ActivationResidualQwen2MLPResidual(torch.autograd.Function):
 
         # Element-wise Multiplication, 1 means gate, 2 means up
         mul_g1, (mul_g2, mul_gs2, mul_g2_t) = fp8_mul_backward(
-            silu_x, silu_s, up_x, up_s, fc3_g, group_size, fwobits["babit"], output_quantized_transpose=True
+            silu_x,
+            silu_s,
+            up_x,
+            up_s,
+            fc3_g,
+            group_size,
+            fwobits["babit"],
+            output_quantized_transpose=True,
         )
 
         # Silu activation
@@ -942,7 +972,11 @@ class FP8ActivationResidualQwen2AttentionWithoutLinear(nn.Module):
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
         if past_key_value is not None:
-            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}  # Specific to RoPE models
+            cache_kwargs = {
+                "sin": sin,
+                "cos": cos,
+                "cache_position": cache_position,
+            }  # Specific to RoPE models
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         # repeat k/v heads if n_kv_heads < n_heads
@@ -1049,7 +1083,11 @@ class FP8ActivationResidualQwen2FlashAttention2WithoutLinear(FP8ActivationResidu
                     attention_mask = attention_mask[:, slicing_tokens:]
                     attention_mask = torch.cat([attention_mask, torch.ones_like(attention_mask[:, -1:])], dim=-1)
 
-            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}  # Specific to RoPE models
+            cache_kwargs = {
+                "sin": sin,
+                "cos": cos,
+                "cache_position": cache_position,
+            }  # Specific to RoPE models
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         # repeat k/v heads if n_kv_heads < n_heads
@@ -1172,7 +1210,11 @@ class FP8ActivationResidualQwen2SdpaAttentionWithoutLinear(FP8ActivationResidual
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
         if past_key_value is not None:
-            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}  # Specific to RoPE models
+            cache_kwargs = {
+                "sin": sin,
+                "cos": cos,
+                "cache_position": cache_position,
+            }  # Specific to RoPE models
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states = repeat_kv(key_states, self.num_key_value_groups)
@@ -1298,7 +1340,10 @@ class FP8ActivationResidualQwen2DecoderLayer(nn.Module):
 
         # Residual Connection, LayerNorm, and the whole MLP module
         quant_hidden_states, scale_hidden_states = self.MLPResidual(
-            hidden_states, quant_hidden_states, scale_hidden_states, self.post_attention_layernorm.weight
+            hidden_states,
+            quant_hidden_states,
+            scale_hidden_states,
+            self.post_attention_layernorm.weight,
         )
 
         outputs = ((quant_hidden_states, scale_hidden_states),)
@@ -1425,7 +1470,9 @@ class FP8ActivationResidualQwen2Model(FP8ActivationResidualQwen2PreTrainedModel)
         if cache_position is None:
             past_seen_tokens = past_key_values.get_seq_length() if past_key_values is not None else 0
             cache_position = torch.arange(
-                past_seen_tokens, past_seen_tokens + inputs_embeds.shape[1], device=inputs_embeds.device
+                past_seen_tokens,
+                past_seen_tokens + inputs_embeds.shape[1],
+                device=inputs_embeds.device,
             )
         if position_ids is None:
             position_ids = cache_position.unsqueeze(0)
@@ -1578,5 +1625,3 @@ def make_state_dict_compatible(state_dict: dict[str, torch.Tensor]):
         compatible_state_dict[new_key] = value
 
     return compatible_state_dict
-
-

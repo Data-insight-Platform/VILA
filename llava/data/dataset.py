@@ -217,7 +217,10 @@ class LazySupervisedDataset(Dataset):
                     )
                 else:
                     processed_images = process_image(
-                        image_file, self.data_args, self.image_folder, enable_dynamic_res=enable_dynamic_res
+                        image_file,
+                        self.data_args,
+                        self.image_folder,
+                        enable_dynamic_res=enable_dynamic_res,
                     )
 
         elif "images" in sources[0]:
@@ -265,7 +268,12 @@ class LazySupervisedDataset(Dataset):
                 frame_count = None
 
             images, frames_loaded = self._load_video(
-                video_path, num_video_frames, loader_fps, self.data_args, fps=fps, frame_count=frame_count
+                video_path,
+                num_video_frames,
+                loader_fps,
+                self.data_args,
+                fps=fps,
+                frame_count=frame_count,
             )
 
             image_tensor = torch.stack([process_image(image, self.data_args, None) for image in images])
@@ -786,7 +794,6 @@ class LazyWDSDataset(Dataset):
         return self.n_samples
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
-
         # print("i", i, "idx_offset", self.idx_offset, "len", len(self.data_list))
         info = self.data_list[i - self.idx_offset]
         caption, image_path = info["caption"], info["image"]
@@ -1343,7 +1350,11 @@ class DataCollatorForSupervisedDatasetSeqParallel:
             reverse=True,  # Start Packing from the sequence with most images.
         )
         sorted_ids, sorted_labels, sorted_images = zip(*combined)
-        sorted_ids, sorted_labels, sorted_images = list(sorted_ids), list(sorted_labels), list(sorted_images)
+        sorted_ids, sorted_labels, sorted_images = (
+            list(sorted_ids),
+            list(sorted_labels),
+            list(sorted_images),
+        )
         max_seq_length = self.tokenizer.model_max_length  # len(sorted_ids[0])
         max_sample_len = 0
 
@@ -1378,13 +1389,19 @@ class DataCollatorForSupervisedDatasetSeqParallel:
                             num_incoming_tokens += pad_len
                             # pad `input_ids`
                             pad_tensor = torch.full(
-                                (pad_len,), RING_PAD_TOKEN_INDEX, dtype=sorted_ids[i].dtype, device=sorted_ids[i].device
+                                (pad_len,),
+                                RING_PAD_TOKEN_INDEX,
+                                dtype=sorted_ids[i].dtype,
+                                device=sorted_ids[i].device,
                             )
                             sorted_ids[i] = torch.cat([sorted_ids[i], pad_tensor])
 
                             # pad `label`
                             pad_label_tensor = torch.full(
-                                (pad_len,), IGNORE_INDEX, dtype=sorted_labels[i].dtype, device=sorted_labels[i].device
+                                (pad_len,),
+                                IGNORE_INDEX,
+                                dtype=sorted_labels[i].dtype,
+                                device=sorted_labels[i].device,
                             )
                             sorted_labels[i] = torch.cat([sorted_labels[i], pad_label_tensor])
                     elif self.ring_type == "zigzag_ring_varlen":
@@ -1394,13 +1411,19 @@ class DataCollatorForSupervisedDatasetSeqParallel:
                             num_incoming_tokens += pad_len
                             # pad `input_ids`
                             pad_tensor = torch.full(
-                                (pad_len,), RING_PAD_TOKEN_INDEX, dtype=sorted_ids[i].dtype, device=sorted_ids[i].device
+                                (pad_len,),
+                                RING_PAD_TOKEN_INDEX,
+                                dtype=sorted_ids[i].dtype,
+                                device=sorted_ids[i].device,
                             )
                             sorted_ids[i] = torch.cat([sorted_ids[i], pad_tensor])
 
                             # pad `label`
                             pad_label_tensor = torch.full(
-                                (pad_len,), IGNORE_INDEX, dtype=sorted_labels[i].dtype, device=sorted_labels[i].device
+                                (pad_len,),
+                                IGNORE_INDEX,
+                                dtype=sorted_labels[i].dtype,
+                                device=sorted_labels[i].device,
                             )
                             sorted_labels[i] = torch.cat([sorted_labels[i], pad_label_tensor])
                     else:
@@ -1426,7 +1449,8 @@ class DataCollatorForSupervisedDatasetSeqParallel:
                     current_len += num_incoming_tokens
                     current_num_samples += 1
                     current_position_ids = torch.cat(
-                        (current_position_ids, torch.arange(start=0, end=num_incoming_tokens)), dim=0
+                        (current_position_ids, torch.arange(start=0, end=num_incoming_tokens)),
+                        dim=0,
                     )
                     current_batch = torch.cat((current_batch, sorted_ids[i]), dim=0)
                     sorted_labels[i][0] = IGNORE_INDEX
@@ -1486,10 +1510,18 @@ class DataCollatorForSupervisedDatasetSeqParallel:
             image_token_indices = torch.where(batches[i] == image_token_id)[0].tolist()
             image_ids = torch.arange(0, len(image_token_indices), dtype=torch.int32)
             batches[i] = extract_local_input_ids(
-                batches[i], image_token_indices, self.sp_rank, self.sp_degree, self.tokenizer.bos_token_id
+                batches[i],
+                image_token_indices,
+                self.sp_rank,
+                self.sp_degree,
+                self.tokenizer.bos_token_id,
             )
             label_batches[i] = extract_local_input_ids(
-                label_batches[i], image_token_indices, self.sp_rank, self.sp_degree, self.tokenizer.bos_token_id
+                label_batches[i],
+                image_token_indices,
+                self.sp_rank,
+                self.sp_degree,
+                self.tokenizer.bos_token_id,
             )
             batch_images[i] = torch.concat(
                 extract_local_from_list(batch_images[i], self.sp_rank, self.sp_degree), dim=0
@@ -1510,7 +1542,12 @@ class DataCollatorForSupervisedDatasetSeqParallel:
                 print(f"Error batch_images[i] on {self.sp_rank}:", batch_images[i].shape)
                 raise AssertionError
             position_ids[i] = extract_local_position_ids(
-                position_ids[i], image_token_indices, image_ids, self.sp_rank, self.sp_degree, NUM_TOKENS_PER_IMAGE - 1
+                position_ids[i],
+                image_token_indices,
+                image_ids,
+                self.sp_rank,
+                self.sp_degree,
+                NUM_TOKENS_PER_IMAGE - 1,
             )
 
         input_ids = torch.nn.utils.rnn.pad_sequence(
@@ -1576,5 +1613,3 @@ def make_supervised_data_module(
         train_dataset=train_dataset,
         data_collator=data_collator,
     )
-
-

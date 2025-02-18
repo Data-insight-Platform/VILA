@@ -46,5 +46,3 @@ def soft_cross_entropy(
 
     # Return average loss
     return loss / targets.size(0)
-
-

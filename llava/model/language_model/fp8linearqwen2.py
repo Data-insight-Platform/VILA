@@ -132,13 +132,25 @@ class FP8LinearQwen2MLP(Qwen2MLP):
         # self.down_proj = te.Linear(self.intermediate_size, self.hidden_size, bias=False)
 
         self.gate_proj = QLinearTE(
-            self.hidden_size, self.intermediate_size, bias=False, args=config.coat_fp8_args, layer_idx=layer_idx
+            self.hidden_size,
+            self.intermediate_size,
+            bias=False,
+            args=config.coat_fp8_args,
+            layer_idx=layer_idx,
         )
         self.up_proj = QLinearTE(
-            self.hidden_size, self.intermediate_size, bias=False, args=config.coat_fp8_args, layer_idx=layer_idx
+            self.hidden_size,
+            self.intermediate_size,
+            bias=False,
+            args=config.coat_fp8_args,
+            layer_idx=layer_idx,
         )
         self.down_proj = QLinearTE(
-            self.intermediate_size, self.hidden_size, bias=False, args=config.coat_fp8_args, layer_idx=layer_idx
+            self.intermediate_size,
+            self.hidden_size,
+            bias=False,
+            args=config.coat_fp8_args,
+            layer_idx=layer_idx,
         )
 
     def forward(self, hidden_state):
@@ -348,5 +360,3 @@ class FP8LinearQwen2ForCausalLM(FP8LinearQwen2PreTrainedModel):
 AutoConfig.register("fp8linear_qwen2", FP8LinearQwen2Config)
 AutoModel.register(FP8LinearQwen2Config, FP8LinearQwen2Model)
 AutoModelForCausalLM.register(FP8LinearQwen2Config, FP8LinearQwen2ForCausalLM)
-
-

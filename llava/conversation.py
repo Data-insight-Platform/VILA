@@ -152,7 +152,10 @@ llama_3_chat = Conversation(
     system="<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful language and vision assistant. "
     "You are able to understand the visual content that the user provides, "
     "and assist the user with a variety of tasks using natural language.",
-    roles=("<|start_header_id|>user<|end_header_id|>\n\n", "<|start_header_id|>assistant<|end_header_id|>\n\n"),
+    roles=(
+        "<|start_header_id|>user<|end_header_id|>\n\n",
+        "<|start_header_id|>assistant<|end_header_id|>\n\n",
+    ),
     version="llama_v3",
     messages=(),
     sep_style=SeparatorStyle.LLAMA_3,
@@ -189,5 +192,3 @@ def auto_set_conversation_mode(model_name_or_path: str) -> str:
             logger.info(f"Setting conversation mode to `{v}` based on model name/path `{model_name_or_path}`.")
             default_conversation = conv_templates[v]
             return
-
-

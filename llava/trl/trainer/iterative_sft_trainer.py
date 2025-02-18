@@ -274,14 +274,22 @@ class IterativeSFTTrainer(Trainer):
 
         if texts is not None:
             model_inputs = self.tokenizer(
-                texts, max_length=self.max_length, truncation=True, padding=True, return_tensors="pt"
+                texts,
+                max_length=self.max_length,
+                truncation=True,
+                padding=True,
+                return_tensors="pt",
             )
 
             input_ids, attention_mask = model_inputs["input_ids"], model_inputs["attention_mask"]
 
         if texts_labels is not None:
             labels = self.tokenizer(
-                texts, max_length=self.max_length, truncation=True, padding=True, return_tensors="pt"
+                texts,
+                max_length=self.max_length,
+                truncation=True,
+                padding=True,
+                return_tensors="pt",
             )["input_ids"]
 
         if labels is None:
@@ -364,5 +372,3 @@ class IterativeSFTTrainer(Trainer):
                 self._globalstep_last_logged = self.state.global_step
 
                 self.log(logs)
-
-

@@ -47,7 +47,8 @@ class VILA(lmms):
             context_length = max(context_length, int(max_tiles / 12.0 * 4096))
 
         context_length = max(
-            getattr(self.model.llm.config, "tokenizer_model_max_length", context_length), context_length
+            getattr(self.model.llm.config, "tokenizer_model_max_length", context_length),
+            context_length,
         )
 
         self.model.config.model_max_length = context_length
@@ -139,5 +140,3 @@ class VILA(lmms):
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         raise NotImplementedError
-
-

@@ -31,7 +31,12 @@ from peft import LoraConfig, PeftModel, get_peft_model
 from ring_flash_attn.zigzag_ring_flash_attn import zigzag_ring_flash_attn_func
 from torch.distributed import barrier
 from torch.utils.data import DataLoader, Dataset
-from transformers import DataCollatorForLanguageModeling, LlamaForCausalLM, Qwen2ForCausalLM, Trainer
+from transformers import (
+    DataCollatorForLanguageModeling,
+    LlamaForCausalLM,
+    Qwen2ForCausalLM,
+    Trainer,
+)
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.models.qwen2.modeling_qwen2 import Qwen2RotaryEmbedding
 from transformers.trainer_utils import seed_worker
@@ -94,7 +99,12 @@ def ring_flash_attention_forward(
     seqlens_in_batch=None,
 ):
     attn_output = zigzag_ring_flash_attn_func(
-        query_states, key_states, value_states, dropout, softmax_scale=softmax_scale, causal=self.is_causal
+        query_states,
+        key_states,
+        value_states,
+        dropout,
+        softmax_scale=softmax_scale,
+        causal=self.is_causal,
     )
     return attn_output
 
@@ -257,7 +267,6 @@ def train():
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
-
         seq_len = input_ids.shape[-1]
         rank = dist.get_rank()
         num_processes = dist.get_world_size()
@@ -392,5 +401,3 @@ def train():
 
 if __name__ == "__main__":
     train()
-
-

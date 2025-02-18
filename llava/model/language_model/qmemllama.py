@@ -16,7 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch LLaMA model."""
+"""PyTorch LLaMA model."""
+
 import math
 import os
 import time
@@ -145,7 +146,10 @@ class QMemLlamaMLP(LlamaMLP):
             up_proj_slices = self.up_proj.weight.split(slice, dim=0)
             down_proj_slices = self.down_proj.weight.split(slice, dim=1)
 
-            gate_proj = torch.cat([F.linear(x, gate_proj_slices[i]) for i in range(self.config.pretraining_tp)], dim=-1)
+            gate_proj = torch.cat(
+                [F.linear(x, gate_proj_slices[i]) for i in range(self.config.pretraining_tp)],
+                dim=-1,
+            )
             up_proj = torch.cat([F.linear(x, up_proj_slices[i]) for i in range(self.config.pretraining_tp)], dim=-1)
 
             intermediate_states = (self.act_fn(gate_proj) * up_proj).split(slice, dim=2)
@@ -671,5 +675,3 @@ class QMemLlamaForSequenceClassification(QMemLlamaPreTrainedModel):
 AutoConfig.register("qmemllama", QMemLlamaConfig)
 AutoModel.register(QMemLlamaConfig, QMemLlamaModel)
 AutoModelForCausalLM.register(QMemLlamaConfig, QMemLlamaForCausalLM)
-
-

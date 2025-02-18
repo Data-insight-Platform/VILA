@@ -77,7 +77,6 @@ def fp8_mul_forward_kernel(
     BLOCK_N: tl.constexpr,
     BLOCK_SN: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -252,5 +251,3 @@ def fp8_mul_forward(x1, s_x1, x2, s_x2, QB, transpose_output_2d=False):
             qy_t = qy_t.reshape(BS, -1, qy.shape[-1])
 
     return qy, s_y_max, qy_t
-
-

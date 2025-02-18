@@ -110,7 +110,12 @@ class ProcessGroupManager(Singleton):
                     for dp_rank in range(dp_degree):
                         offset = dp_rank * self.sp_degree
                         for i in range(num_ring_pgs):
-                            ring_ranks = list(range(i * self.ring_degree + offset, (i + 1) * self.ring_degree + offset))
+                            ring_ranks = list(
+                                range(
+                                    i * self.ring_degree + offset,
+                                    (i + 1) * self.ring_degree + offset,
+                                )
+                            )
                             group = dist.new_group(ring_ranks)
                             if self.rank in ring_ranks:
                                 self.ring_pg = group
@@ -163,7 +168,7 @@ def set_pg_manager(sp_degree, sp_ring_degree=1, use_ulysses_low=True, ring_type=
     if dist.is_initialized():
         if dist.get_rank() == 0:
             print(
-                "torch distributed is already initialized, " "skipping initialization ...",
+                "torch distributed is already initialized, skipping initialization ...",
                 flush=True,
             )
     else:
@@ -266,5 +271,3 @@ def get_data_parallel_size():
 def get_data_parallel_rank():
     """Get the rank of this process in the data parallel group the caller rank belongs to."""
     return PROCESS_GROUP_MANAGER.dp_rank
-
-

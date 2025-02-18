@@ -3,7 +3,11 @@ import json
 import os
 from collections import defaultdict
 
-eval_dict = {"refcoco": ["val", "testA", "testB"], "refcoco+": ["val", "testA", "testB"], "refcocog": ["val", "test"]}
+eval_dict = {
+    "refcoco": ["val", "testA", "testB"],
+    "refcoco+": ["val", "testA", "testB"],
+    "refcocog": ["val", "test"],
+}
 
 
 def computeIoU(bbox1, bbox2):
@@ -71,5 +75,3 @@ if __name__ == "__main__":
             except Exception as e:
                 print(e, flush=True)
                 continue
-
-

@@ -14,7 +14,12 @@ from PIL import Image, ImageDraw, ImageFont
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-from llava.constants import DEFAULT_IM_END_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IMAGE_TOKEN, IMAGE_TOKEN_INDEX
+from llava.constants import (
+    DEFAULT_IM_END_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    IMAGE_TOKEN_INDEX,
+)
 from llava.conversation import SeparatorStyle, conv_templates
 from llava.mm_utils import (
     KeywordsStoppingCriteria,
@@ -168,12 +173,23 @@ def collate_fn(data):
 
 # DataLoader
 def create_data_loader(
-    loaded_data, image_folder, tokenizer, image_processor, model_config, conv_mode, batch_size=1, num_workers=8
+    loaded_data,
+    image_folder,
+    tokenizer,
+    image_processor,
+    model_config,
+    conv_mode,
+    batch_size=1,
+    num_workers=8,
 ):
     assert batch_size == 1, "batch_size must be 1"
     dataset = RefCOCODataset(loaded_data, image_folder, tokenizer, image_processor, model_config, conv_mode)
     data_loader = DataLoader(
-        dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=collate_fn, shuffle=False
+        dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        collate_fn=collate_fn,
+        shuffle=False,
     )
     return data_loader
 
@@ -199,7 +215,10 @@ def eval_model(args):
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     model_name = get_model_name_from_path(model_path)
-    print_rank0(f"model path: {model_path}\nmodel name: {model_name}\nmodel base: {args.model_base}\n", flush=True)
+    print_rank0(
+        f"model path: {model_path}\nmodel name: {model_name}\nmodel base: {args.model_base}\n",
+        flush=True,
+    )
 
     tokenizer, model, image_processor, _ = load_pretrained_model(model_path, model_name, args.model_base)
     print_rank0(args.chunk_idx, "model config: \n", model.config, flush=True)
@@ -227,7 +246,12 @@ def eval_model(args):
 
             loaded_data = get_chunk(loaded_data_full, args.num_chunks, args.chunk_idx)
             data_loader = create_data_loader(
-                loaded_data, args.image_folder, tokenizer, image_processor, model.config, args.conv_mode
+                loaded_data,
+                args.image_folder,
+                tokenizer,
+                image_processor,
+                model.config,
+                args.conv_mode,
             )
             print_rank0(args.chunk_idx, f"dataset size: {len(loaded_data)}/{len(loaded_data_full)}\n")
 
@@ -294,9 +318,14 @@ def eval_model(args):
 
             # process remaining questions
             for i in range(args.num_resample):
-                print(f"Remaining {len(resamples)} images. Resampling {i+1} time.\n")
+                print(f"Remaining {len(resamples)} images. Resampling {i + 1} time.\n")
                 data_loader = create_data_loader(
-                    resamples, args.image_folder, tokenizer, image_processor, model.config, args.conv_mode
+                    resamples,
+                    args.image_folder,
+                    tokenizer,
+                    image_processor,
+                    model.config,
+                    args.conv_mode,
                 )
                 resamples = []
                 for input_ids, image_tensor, image_file, raw_data, raw_image in data_loader:
@@ -377,5 +406,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     eval_model(args)
-
-

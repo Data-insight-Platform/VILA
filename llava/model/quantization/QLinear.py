@@ -22,7 +22,12 @@ class QLinear(nn.Linear):
         assert layer_type in qconfig.qlinear_config.keys(), f"{layer_type} not in qlinear_config"
 
         self.apply_quantize = list_has_common_element(args.qchoice, qconfig.qlinear_config[layer_type])
-        self.apply_quantize_fw, self.apply_quantize_fo, self.apply_quantize_bw, self.apply_quantize_ba = (
+        (
+            self.apply_quantize_fw,
+            self.apply_quantize_fo,
+            self.apply_quantize_bw,
+            self.apply_quantize_ba,
+        ) = (
             self.apply_quantize,
             self.apply_quantize,
             self.apply_quantize,
@@ -63,12 +68,30 @@ class QLinear(nn.Linear):
             print(quantize_flag)
 
     def refine_rowcol_blocksize(self):
-        self.args.row_blocksize_fa, self.args.col_blocksize_fa = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_fw, self.args.col_blocksize_fw = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_fo, self.args.col_blocksize_fo = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_ba, self.args.col_blocksize_ba = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_bw, self.args.col_blocksize_bw = self.args.row_blocksize, self.args.col_blocksize
-        self.args.row_blocksize_bo, self.args.col_blocksize_bo = self.args.row_blocksize, self.args.col_blocksize
+        self.args.row_blocksize_fa, self.args.col_blocksize_fa = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_fw, self.args.col_blocksize_fw = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_fo, self.args.col_blocksize_fo = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_ba, self.args.col_blocksize_ba = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_bw, self.args.col_blocksize_bw = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
+        self.args.row_blocksize_bo, self.args.col_blocksize_bo = (
+            self.args.row_blocksize,
+            self.args.col_blocksize,
+        )
 
         if self.args.refine_attn_blocksize:
             if self.layer_type in ["attn_q", "attn_k", "attn_v"]:
@@ -172,7 +195,6 @@ class QuantLinear(Function):
         apply_quantize_bw=True,
         apply_quantize_ba=True,
     ):
-
         # shrink Iscale to let the size of gradient the same as forward
         ideal_scale_num = Qinput.numel() / (args.min_blockunit_row * args.min_blockunit_col)
         actual_scale_num = calculate_scale_num(Qinput, args.row_blocksize_fa, args.col_blocksize_fa)
@@ -201,7 +223,12 @@ class QuantLinear(Function):
             save_tensor(weight, Qweight, RQweight, fb="forward", aw="Weight", layer_name=layer_name)
 
         ctx.saved = Qinput, Iscale, Qweight, Wscale, bias, args, layer_name
-        ctx.apply_quantize = apply_quantize_fw, apply_quantize_fo, apply_quantize_bw, apply_quantize_ba
+        ctx.apply_quantize = (
+            apply_quantize_fw,
+            apply_quantize_fo,
+            apply_quantize_bw,
+            apply_quantize_ba,
+        )
         fc_output = F.linear(RQinput, RQweight, bias)
 
         Bfc_output = block_cut(fc_output, args.row_blocksize_fo, args.col_blocksize_fo)
@@ -248,7 +275,12 @@ class QuantLinear(Function):
 
         if args.draw_distribution_backward:
             save_tensor(
-                grad_output, Qgrad_output, RQgrad_output, fb="backward in", aw="Activation", layer_name=layer_name
+                grad_output,
+                Qgrad_output,
+                RQgrad_output,
+                fb="backward in",
+                aw="Activation",
+                layer_name=layer_name,
             )
 
         C_in = Qinput.shape[-1]
@@ -280,7 +312,14 @@ class QuantLinear(Function):
         RQgrad_weight = block_reshape(RQgrad_weight, grad_weight, args.row_blocksize_bw, args.col_blocksize_bw)
 
         if args.draw_distribution_backward:
-            save_tensor(grad_weight, Qgrad_weight, RQgrad_weight, fb="backward", aw="Weight", layer_name=layer_name)
+            save_tensor(
+                grad_weight,
+                Qgrad_weight,
+                RQgrad_weight,
+                fb="backward",
+                aw="Weight",
+                layer_name=layer_name,
+            )
 
         # Calculate Weight Gradient
         Bweight = block_cut(Qweight, args.row_blocksize_fw, args.col_blocksize_fw)
@@ -307,7 +346,12 @@ class QuantLinear(Function):
 
         if args.draw_distribution_backward:
             save_tensor(
-                grad_input, Qgrad_input, RQgrad_input, fb="backward out", aw="Activation out", layer_name=layer_name
+                grad_input,
+                Qgrad_input,
+                RQgrad_input,
+                fb="backward out",
+                aw="Activation out",
+                layer_name=layer_name,
             )
 
         # enlarge Qgrad_input to let the size of gradient the same as forward
@@ -324,6 +368,15 @@ class QuantLinear(Function):
         else:
             grad_bias = None
 
-        return Qgrad_input_transform, GIscale, RQgrad_weight, grad_bias, None, None, None, None, None, None
-
-
+        return (
+            Qgrad_input_transform,
+            GIscale,
+            RQgrad_weight,
+            grad_bias,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )

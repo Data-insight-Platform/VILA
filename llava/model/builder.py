@@ -18,7 +18,13 @@ import os
 import warnings
 
 import torch
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, PretrainedConfig
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    PretrainedConfig,
+)
 
 from llava.model import LlavaLlamaModel
 from llava.model.utils import is_mm_model
@@ -55,7 +61,7 @@ def load_pretrained_model(
 
     if is_mm_model(model_path):
         # Load LLaVA model
-        ## TODO @yunhao: mind fixing lora
+        # TODO @yunhao: mind fixing lora
         if "lora" in model_name.lower() and model_base is None:
             warnings.warn(
                 "There is `lora` in model name but no `model_base` is provided. If you are loading a LoRA model, please provide the `model_base` argument. Detailed instruction: https://github.com/haotian-liu/LLaVA#launch-a-model-worker-lora-weights-unmerged."
@@ -112,13 +118,11 @@ def load_pretrained_model(
             config = AutoConfig.from_pretrained(model_path)
             config.resume_path = model_path
             # override config from the ENVIRONMENT
-            if "num_video_frames" in kwargs:
-                config.num_video_frames = kwargs.pop("num_video_frames")
-            if "model_max_length" in kwargs:
-                config.model_max_length = kwargs.pop("model_max_length")
+            prepare_config_for_eval(config, kwargs)
             if "max_sequence_length" in kwargs:
                 config.max_sequence_length = kwargs.pop("max_sequence_length")
-            prepare_config_for_eval(config, kwargs)
+            if "num_video_frames" in kwargs:
+                config.num_video_frames = kwargs.pop("num_video_frames")
             model = LlavaLlamaModel(config=config, low_cpu_mem_usage=True, **kwargs)
             tokenizer = model.tokenizer
     else:

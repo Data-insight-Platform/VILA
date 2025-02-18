@@ -128,7 +128,14 @@ def save_tensor(tensor, RQtensor, Qtensor, fb, aw, layer_name):
     file_name = f"{layer_name}.pt"
     os.makedirs(visualize_path, exist_ok=True)
     torch.save(
-        {"tensor": tensor, "RQtensor": RQtensor, "Qtensor": Qtensor, "fb": fb, "aw": aw, "layer_name": layer_name},
+        {
+            "tensor": tensor,
+            "RQtensor": RQtensor,
+            "Qtensor": Qtensor,
+            "fb": fb,
+            "aw": aw,
+            "layer_name": layer_name,
+        },
         os.path.join(visualize_path, file_name),
     )
     print(f"{aw}   {fb}   {layer_name} saved!")
@@ -154,8 +161,16 @@ def visualize_distribution(pt_path):
     os.makedirs(visualize_path, exist_ok=True)
 
     # MSE = (tensor - Qtensor).norm().item()
-    tensor, RQtensor, Qtensor = move_torch_to_numpy(tensor), move_torch_to_numpy(RQtensor), move_torch_to_numpy(Qtensor)
-    tensor, RQtensor, Qtensor = flatten_to_1d(tensor), flatten_to_1d(RQtensor), flatten_to_1d(Qtensor)
+    tensor, RQtensor, Qtensor = (
+        move_torch_to_numpy(tensor),
+        move_torch_to_numpy(RQtensor),
+        move_torch_to_numpy(Qtensor),
+    )
+    tensor, RQtensor, Qtensor = (
+        flatten_to_1d(tensor),
+        flatten_to_1d(RQtensor),
+        flatten_to_1d(Qtensor),
+    )
     # 创建两个子图
     fig, axs = plt.subplots(3, 2, figsize=(120, 80))
     plt.rcParams["font.size"] = 80
@@ -205,5 +220,3 @@ def visualize_distribution(pt_path):
     print(f"{aw}   {fb}   {layer_name} distribution finish!")
 
     exit(0)
-
-

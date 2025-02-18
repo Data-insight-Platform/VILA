@@ -14,7 +14,14 @@ from llava.utils import distributed as dist
 from llava.utils import io
 from llava.utils.logging import logger
 
-__all__ = ["DATASETS", "MIXTURES", "register_datasets", "register_mixtures", "parse_mixture", "build_dataset"]
+__all__ = [
+    "DATASETS",
+    "MIXTURES",
+    "register_datasets",
+    "register_mixtures",
+    "parse_mixture",
+    "build_dataset",
+]
 
 
 def load_dataset_yaml(name):
@@ -213,5 +220,3 @@ def build_dataset_legacy(
         data_args=data_args,
         training_args=training_args,
     )
-
-

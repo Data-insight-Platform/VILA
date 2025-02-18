@@ -88,5 +88,3 @@ class DataCollator:
             "labels": labels,
             "attention_mask": attention_mask,
         }
-
-

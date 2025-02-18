@@ -54,5 +54,3 @@ def add_dataset(dataset):
 
 def register_datasets_mixtures():
     pass
-
-

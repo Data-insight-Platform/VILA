@@ -24,7 +24,10 @@ from ..trainer.utils import ConstantLengthDataset
 
 FORMAT_MAPPING = {
     "chatml": [{"content": Value(dtype="string", id=None), "role": Value(dtype="string", id=None)}],
-    "instruction": {"completion": Value(dtype="string", id=None), "prompt": Value(dtype="string", id=None)},
+    "instruction": {
+        "completion": Value(dtype="string", id=None),
+        "prompt": Value(dtype="string", id=None),
+    },
 }
 
 
@@ -101,5 +104,3 @@ def get_formatting_func_from_dataset(
             return instructions_formatting_function(tokenizer)
 
     return None
-
-

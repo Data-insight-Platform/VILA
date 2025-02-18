@@ -41,7 +41,7 @@ format2questions = {
     ],
     "ocr": [
         "Describe the textual content in the image.",
-        "Identify the text visible in this image." "What words or phrases can you identify in the image?",
+        "Identify the text visible in this image.What words or phrases can you identify in the image?",
     ],
     "bbox_interleaved": [
         "Generate a thorough caption for the image and specify where the main elements are positioned.",
@@ -132,7 +132,11 @@ class LazyCoyoWebQADataset(LazyCoyoWebDataset):
                 n_images = 1
             elif self.data_args.image_aspect_ratio == "dynamic":
                 images = process_image(
-                    image_path, self.data_args, image_folder=None, enable_dynamic_res=True, max_tiles=6
+                    image_path,
+                    self.data_args,
+                    image_folder=None,
+                    enable_dynamic_res=True,
+                    max_tiles=6,
                 )
                 image_list.append(images)
                 n_images = len(images)
@@ -175,7 +179,12 @@ class LazyCoyoWebQADataset(LazyCoyoWebDataset):
                         q = format2questions["ocr"]
                     elif "bbox_interleaved" in caption_choice_i:
                         q = format2questions["bbox_interleaved"]
-                    sources.extend([{"from": "human", "value": np.random.choice(q)}, {"from": "gpt", "value": answer}])
+                    sources.extend(
+                        [
+                            {"from": "human", "value": np.random.choice(q)},
+                            {"from": "gpt", "value": answer},
+                        ]
+                    )
             if sources:
                 sources = [sources]
                 # sources = preprocess_multimodal(copy.deepcopy([sources]), self.data_args)
@@ -189,9 +198,11 @@ class LazyCoyoWebQADataset(LazyCoyoWebDataset):
             targets.append(targets_i)
 
         input_ids = [
-            torch.concat([torch.tensor([self.tokenizer.bos_token_id]), input_ids_i])
-            if input_ids_i[0] != self.tokenizer.bos_token_id
-            else input_ids_i
+            (
+                torch.concat([torch.tensor([self.tokenizer.bos_token_id]), input_ids_i])
+                if input_ids_i[0] != self.tokenizer.bos_token_id
+                else input_ids_i
+            )
             for input_ids_i in input_ids
         ]
 
@@ -203,5 +214,3 @@ class LazyCoyoWebQADataset(LazyCoyoWebDataset):
             data_dict["block_sizes"] = block_sizes
 
         return data_dict
-
-

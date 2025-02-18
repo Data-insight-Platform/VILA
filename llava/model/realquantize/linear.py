@@ -286,8 +286,9 @@ if __name__ == "__main__":
         a = torch.randn((M, K), device="cuda", dtype=torch.float32)
         b = torch.randn((N, K), device="cuda", dtype=torch.bfloat16)
 
-        scale_a, scale_b = torch.randn((1), device="cuda", dtype=torch.bfloat16), torch.randn(
-            (1), device="cuda", dtype=torch.bfloat16
+        scale_a, scale_b = (
+            torch.randn((1), device="cuda", dtype=torch.bfloat16),
+            torch.randn((1), device="cuda", dtype=torch.bfloat16),
         )
         a = a.to(torch.float8_e4m3fn)
         b = b.T
@@ -305,8 +306,9 @@ if __name__ == "__main__":
         a = torch.randn((M, K), device="cuda", dtype=torch.float32)
         b = torch.randn((N, K), device="cuda", dtype=torch.bfloat16)
 
-        scale_a, scale_b = torch.randn((1), device="cuda", dtype=torch.bfloat16), torch.randn(
-            (1), device="cuda", dtype=torch.bfloat16
+        scale_a, scale_b = (
+            torch.randn((1), device="cuda", dtype=torch.bfloat16),
+            torch.randn((1), device="cuda", dtype=torch.bfloat16),
         )
         a = a.to(torch.float8_e4m3fn)
         b = b.T
@@ -352,8 +354,9 @@ if __name__ == "__main__":
             a = a.to(torch.float8_e4m3fn)
             b = b.T
             b = b.to(torch.float8_e4m3fn)
-            scale_a, scale_b = torch.randn((1), device="cuda", dtype=torch.bfloat16), torch.randn(
-                (1), device="cuda", dtype=torch.bfloat16
+            scale_a, scale_b = (
+                torch.randn((1), device="cuda", dtype=torch.bfloat16),
+                torch.randn((1), device="cuda", dtype=torch.bfloat16),
             )
         quantiles = [0.5, 0.2, 0.8]
         if provider == "cublas":
@@ -372,5 +375,3 @@ if __name__ == "__main__":
     # time_check(4096, 11008, 5380)
     # validity_check(2048, 1024, 4096)
     benchmark.run(show_plots=True, print_data=True)
-
-

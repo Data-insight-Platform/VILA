@@ -218,7 +218,6 @@ class RADIOVisionTower(VisionTower):
         x = x.float()
         with torch.autocast("cuda", dtype=torch.bfloat16):
             if self.select_feature == "dense":
-
                 # Layers to return activations of in case of "return_multilayer=True".
                 num_layers = len(self.vision_tower.model.blocks)
                 multilayers = [
@@ -332,5 +331,3 @@ class RADIOVisionTower(VisionTower):
         self.sample_count += 1
 
         return features
-
-

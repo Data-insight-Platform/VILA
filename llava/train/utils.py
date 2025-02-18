@@ -216,7 +216,11 @@ def reshard_hiddne_states_and_labels(hidden_states, labels):
     # Gather all hidden states and flaten them
     # all_hidden_states = [torch.zeros(bs, seq_len, hidden_states.shape[-1], dtype=hidden_states.dtype, device=hidden_states.device, requires_grad=True).contiguous() for seq_len in ulysses_seq_len]
     all_hidden_states = torch.zeros(
-        bs, torch.sum(global_seq_len), hidden_states.shape[-1], dtype=hidden_states.dtype, device=hidden_states.device
+        bs,
+        torch.sum(global_seq_len),
+        hidden_states.shape[-1],
+        dtype=hidden_states.dtype,
+        device=hidden_states.device,
     ).contiguous()
     all_hidden_states[:, original_start_id:original_end_id, :] += hidden_states
     dist.barrier(group=sp_group)
@@ -282,5 +286,3 @@ def sp_loss_rescale(shift_labels, loss):
 #     # dist.all_reduce(global_active_sum, group=get_ulysses_sp_pg())
 #     # loss_weight = num_active_elements / global_active_sum * PROCESS_GROUP_MANAGER.sp_degree
 #     # return loss_weight
-
-

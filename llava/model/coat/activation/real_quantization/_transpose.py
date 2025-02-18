@@ -48,7 +48,6 @@ def _fp8_transpose_kernel(
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):  # CUDA block size
-
     # Block PID
     pid = tl.program_id(0)
     NUM_BLOCK_N = tl.cdiv(N, BLOCK_N)
@@ -113,5 +112,3 @@ def fp8_transpose(x, transpose_output_2d=False):
         y = y.reshape(BS, -1, y.shape[-1])
 
     return y
-
-

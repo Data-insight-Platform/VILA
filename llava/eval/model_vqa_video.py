@@ -49,7 +49,6 @@ def get_chunk(lst, n, k):
 
 
 def get_model_output(model, image_processor, tokenizer, video_path, qs, args):
-
     conversation_lib.default_conversation = conversation_lib.conv_templates[args.conv_mode]
     if hasattr(model.config, "num_video_frames") and model.config.num_video_frames is not None:
         num_video_frames = model.config.num_video_frames
@@ -167,7 +166,6 @@ def eval_model(args):
 
         # Load the video file
         for fmt in tqdm(video_formats):  # Added this line
-
             if "Activitynet_Zero_Shot_QA" in args.video_dir:
                 temp_path = os.path.join(args.video_dir, f"{id.rsplit('_', 1)[0]}{fmt}")
             else:
@@ -196,7 +194,11 @@ if __name__ == "__main__":
     parser.add_argument("--model-base", type=str, default=None)
     parser.add_argument("--model_max_length", type=int, required=False, default=2048)
     parser.add_argument("--video_dir", help="Directory containing video files.", required=True)
-    parser.add_argument("--gt_file_question", help="Path to the ground truth file containing question.", required=True)
+    parser.add_argument(
+        "--gt_file_question",
+        help="Path to the ground truth file containing question.",
+        required=True,
+    )
     parser.add_argument("--gt_file_answers", help="Path to the ground truth file containing answers.", required=True)
     parser.add_argument("--output_dir", help="Directory to save the model results JSON.", required=True)
     parser.add_argument("--output_name", help="Name of the file for storing results JSON.", required=True)
@@ -209,5 +211,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     eval_model(args)
-
-

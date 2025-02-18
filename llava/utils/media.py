@@ -26,6 +26,7 @@ def _extract_image(image: Union[Image, PIL.Image.Image]) -> PIL.Image.Image:
             image = PIL.Image.open(image.path)
     return image
 
+
 def download_s3_asset(video_path: str, s3_prefix: str = "s3://") -> str:
     import boto3
     from pathlib import Path
@@ -66,6 +67,7 @@ def _load_video(video_path: str, *, num_frames: int) -> List[PIL.Image.Image]:
 
     # Extract frames uniformly
     indices = np.round(np.linspace(0, frame_count - 1, num_frames)).astype(int)
+    logger.info(f"Selected frames indices: {indices}")
     frames = {}
     for index in indices:
         if index in frames:
@@ -122,5 +124,3 @@ def extract_media(
                 raise ValueError(f"Unsupported prompt part type: {type(part)}")
         message["value"] = text
     return media
-
-

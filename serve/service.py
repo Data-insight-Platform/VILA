@@ -1,12 +1,15 @@
+import time
+from uuid import uuid4
 from typing import Callable, List, Dict
 from fastapi.responses import JSONResponse
 
 from llava.media import Video
+from llava.utils.logging import logger
 from llava.conversation import conv_templates, SeparatorStyle, Conversation
 from llava.constants import DEFAULT_IMAGE_TOKEN
 
 
-from serve.models import ChatCompletionRequest
+from serve.models import ChatCompletionRequest, ChatMessage
 from serve.utils import load_image, normalize_image_tags
 
 
@@ -69,16 +72,10 @@ def image_inference(images, model, tokenizer, image_processor):
     if len(images) == 0:
         images_input = None
     else:
-        images_tensor = process_images(images, image_processor, model.config).to(
-            model.device, dtype=torch.float16
-        )
+        images_tensor = process_images(images, image_processor, model.config).to(model.device, dtype=torch.float16)
         images_input = [images_tensor]
 
-    input_ids = (
-        tokenizer_image_token(prompt_text, tokenizer, return_tensors="pt")
-        .unsqueeze(0)
-        .to(model.device)
-    )
+    input_ids = tokenizer_image_token(prompt_text, tokenizer, return_tensors="pt").unsqueeze(0).to(model.device)
 
     stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
     keywords = [stop_str]
@@ -123,7 +120,6 @@ def image_inference(images, model, tokenizer, image_processor):
                             "id": chunk_id,
                             "object": "chat.completion.chunk",
                             "created": time.time(),
-                            "model": request.model,
                             "choices": [{"delta": {"content": new_text}}],
                         }
                         yield f"data: {json.dumps(chunk)}\n\n"
@@ -153,31 +149,26 @@ def image_inference(images, model, tokenizer, image_processor):
 
             resp_content = [TextContent(type="text", text=outputs)]
             return {
-                "id": uuid.uuid4().hex,
+                "id": uuid4().hex,
                 "object": "chat.completion",
                 "created": time.time(),
-                "model": request.model,
                 "choices": [{"message": ChatMessage(role="assistant", content=resp_content)}],
             }
 
 
-def video_inference(model) -> Dict:
+def video_inference(model, prompt) -> Dict:
+    logger.info(f"Recieved prompt: {prompt}")
     response = model.generate_content(prompt)
     return {
-        "id": uuid.uuid4().hex,
+        "id": uuid4().hex,
         "object": "chat.completion",
         "created": time.time(),
-        "model": req_model,
         "choices": [{"message": ChatMessage(role="assistant", content=response)}],
     }
 
 
 async def handle_request(
-    request: ChatCompletionRequest,
-    model: Callable,
-    tokenizer: Callable,
-    image_processor: Callable,
-    conv_mode: str,
+    request: ChatCompletionRequest, model: Callable, tokenizer: Callable, image_processor: Callable, conv_mode: str
 ) -> JSONResponse:
     messages = request.messages
     conv = conv_templates[conv_mode].copy()
@@ -188,15 +179,9 @@ async def handle_request(
         conv.append_message(assistant_role, "")
 
     if len(images) > 0:
-        try:
-            prompt_text = conv.get_prompt()
-            print("Prompt input: ", prompt_text)
-            return image_inference(images, model, tokenizer, image_processor)
-        except Exception as e:
-            JSONResponse(status_code=500, content={"error": str(e)})
+        prompt_text = conv.get_prompt()
+        print("Prompt input: ", prompt_text)
+        return image_inference(images, model, tokenizer, image_processor)
     if len(videos) > 0:
-        try:
-            _, prompt = conv.messages[0]
-            return video_inference(model, prompt)
-        except Exception as e:
-            JSONResponse(status_code=500, content={"error": str(e)})
+        _, prompt = conv.messages[0]
+        return video_inference(model, prompt)

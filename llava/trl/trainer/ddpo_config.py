@@ -131,8 +131,5 @@ class DDPOConfig:
 
         if self.train_use_8bit_adam and not is_bitsandbytes_available():
             raise ImportError(
-                "You need to install bitsandbytes to use 8bit Adam. "
-                "You can install it with `pip install bitsandbytes`."
+                "You need to install bitsandbytes to use 8bit Adam. You can install it with `pip install bitsandbytes`."
             )
-
-

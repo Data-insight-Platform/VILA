@@ -13,9 +13,17 @@ import deepspeed
 import torch
 from deepspeed import comm as dist
 from deepspeed.accelerator import get_accelerator
-from deepspeed.runtime.zero.mics_utils import MiCS_CommGroups, create_mics_comm_groups, scale_tensors
+from deepspeed.runtime.zero.mics_utils import (
+    MiCS_CommGroups,
+    create_mics_comm_groups,
+    scale_tensors,
+)
 from deepspeed.runtime.zero.parameter_offload import DeepSpeedZeRoOffload, is_zero_param
-from deepspeed.runtime.zero.partition_parameters import AllGatherCoalescedHandle, Init, ZeroParamStatus
+from deepspeed.runtime.zero.partition_parameters import (
+    AllGatherCoalescedHandle,
+    Init,
+    ZeroParamStatus,
+)
 from deepspeed.runtime.zero.stage3 import DeepSpeedZeroOptimizer_Stage3
 from deepspeed.utils import instrument_w_nvtx, log_dist
 from torch import Tensor
@@ -229,14 +237,18 @@ class MiCS_Init(Init):
         # input_tensor = torch.cat(input_tensors, dim=0)
         # flat_tensor = torch.cat(output_tensors, dim=0)
         flat_tensor = torch.empty(
-            partition_sz * param_shard_size, dtype=params[0].dtype, device=self.local_device, requires_grad=False
+            partition_sz * param_shard_size,
+            dtype=params[0].dtype,
+            device=self.local_device,
+            requires_grad=False,
         ).view(-1)
 
         partitions: List[Parameter] = []
         for i in range(param_shard_size):
             partitions.append(flat_tensor.narrow(0, partition_sz * i, partition_sz))
         instrument_w_nvtx(torch.cat)(
-            [p.ds_tensor.to(get_accelerator().current_device_name()) for p in params], out=partitions[rank_in_group]
+            [p.ds_tensor.to(get_accelerator().current_device_name()) for p in params],
+            out=partitions[rank_in_group],
         )
         # Ensure all gather output size is correct
         assert partitions[rank_in_group].numel() * param_shard_size == flat_tensor.numel()
@@ -427,7 +439,6 @@ class MiCS_Optimizer(DeepSpeedZeroOptimizer_Stage3):
         elastic_checkpoint=False,
         aio_config=None,
     ):
-
         log_dist("Init MiCS optimizer", ranks=[0])
         super().__init__(
             module,
@@ -536,12 +547,14 @@ class MiCS_Optimizer(DeepSpeedZeroOptimizer_Stage3):
                 offset += grad_buff.numel()
 
     def load_state_dict(
-        self, state_dict_list, load_optimizer_states=True, load_from_fp32_weights=False, checkpoint_folder=None
+        self,
+        state_dict_list,
+        load_optimizer_states=True,
+        load_from_fp32_weights=False,
+        checkpoint_folder=None,
     ):
         r"""Loading the ZeRO-3/MiCS partitioned checkpoints
         Because the self.dp_process_group is replaced with the communicator for
         partition group we can call the load_state_dict logic from ZeRO-3.
         """
         super().load_state_dict(state_dict_list, load_optimizer_states, load_from_fp32_weights, checkpoint_folder)
-
-

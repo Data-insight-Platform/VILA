@@ -87,7 +87,7 @@ def contains_quantity_word(text, special_keep_words=[]):
     quantity_words = [
         "most",
         "least",
-        "fewest" "more",
+        "fewestmore",
         "less",
         "fewer",
         "largest",
@@ -154,7 +154,20 @@ def contains_quantity_word(text, special_keep_words=[]):
 
 
 def is_bool_word(text):
-    if text in ["Yes", "No", "True", "False", "yes", "no", "true", "false", "YES", "NO", "TRUE", "FALSE"]:
+    if text in [
+        "Yes",
+        "No",
+        "True",
+        "False",
+        "yes",
+        "no",
+        "true",
+        "false",
+        "YES",
+        "NO",
+        "TRUE",
+        "FALSE",
+    ]:
         return True
     return False
 
@@ -253,5 +266,3 @@ def get_chat_response(
             if sleep_time > 0:
                 time.sleep(sleep_time)
     return ""
-
-

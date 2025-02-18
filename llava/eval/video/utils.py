@@ -8,7 +8,6 @@ from openai import AzureOpenAI
 
 
 def get_client():
-
     if os.getenv("OPENAI_API_KEY"):
         client = openai  # use default openai
     elif os.getenv("AZURE_OPENAI_API_KEY") and os.getenv("AZURE_OPENAI_ENDPOINT"):
@@ -21,5 +20,3 @@ def get_client():
         raise ValueError("At least provide one format for gpt assisted benchmarking")
 
     return client
-
-

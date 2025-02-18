@@ -157,7 +157,6 @@ class RADIOVisionTower(VisionTower):
         return hidden_size
 
     def load_model(self):
-
         if self.image_aspect_ratio == "resize":
             self.image_processor = ImageProcessor(
                 size={"width": self.image_size, "height": self.image_size},
@@ -332,7 +331,9 @@ class RADIOVisionTower(VisionTower):
                     spatial_features
                 )  # B, C, H/patch_size/downscale_factor, W/patch_size/downscale_factor
                 features = spatial_features.reshape(
-                    B, C, (H // patch_size // self.downscale_factor) * (W // patch_size // self.downscale_factor)
+                    B,
+                    C,
+                    (H // patch_size // self.downscale_factor) * (W // patch_size // self.downscale_factor),
                 )
                 features = features.permute(
                     0, 2, 1
@@ -373,5 +374,3 @@ class RADIOVisionTower(VisionTower):
         self.sample_count += 1
 
         return features
-
-

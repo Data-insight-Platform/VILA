@@ -50,7 +50,11 @@ def all_to_all_4D(input: torch.tensor, scatter_idx: int = 2, gather_idx: int = 1
         # (TODO) Maybe can optimize to per forward call.
         ulysses_seq_len = [torch.zeros(1, dtype=torch.int64, device=input.device) for _ in range(get_ulysses_sp_size())]
         dist.barrier(group=get_ulysses_sp_pg())
-        dist.all_gather(ulysses_seq_len, torch.tensor(shard_seqlen, device=input.device), group=get_ulysses_sp_pg())
+        dist.all_gather(
+            ulysses_seq_len,
+            torch.tensor(shard_seqlen, device=input.device),
+            group=get_ulysses_sp_pg(),
+        )
         set_ulysses_seq_len(ulysses_seq_len)
 
         max_global_length = max(ulysses_seq_len)
@@ -149,7 +153,6 @@ class SeqAllToAll4D(torch.autograd.Function):
         scatter_idx: int,
         gather_idx: int,
     ) -> Tensor:
-
         ctx.group = group
         ctx.scatter_idx = scatter_idx
         ctx.gather_idx = gather_idx
@@ -252,7 +255,6 @@ class SeqAllToAll5D(torch.autograd.Function):
         scatter_idx: int = 3,
         gather_idx: int = 1,
     ) -> Tensor:
-
         ctx.group = group
         ctx.scatter_idx = scatter_idx
         ctx.gather_idx = gather_idx
@@ -284,5 +286,3 @@ class SeqAllGather(torch.autograd.Function):
     def backward(ctx: Any, grad_output: Tensor) -> Tuple[None, Tensor]:
         (tensor,) = ctx.saved_tensors
         return None, (None, tensor)
-
-

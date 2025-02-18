@@ -94,7 +94,6 @@ class QuantLinearTE(Function):
     @staticmethod
     @amp.custom_fwd(cast_inputs=torch.bfloat16)
     def forward(ctx, input, weight, bias, args, layer_name):
-
         time_bench = os.getenv("TIME_BENCH")
 
         if time_bench:
@@ -223,5 +222,3 @@ class QuantLinearTE(Function):
                 )
 
         return grad_input, grad_weight, grad_bias, None, None
-
-

@@ -27,7 +27,13 @@ __all__ = [
 
 class LLaVACOTDataset(BaseDataset):
     def __init__(
-        self, data_path: str, media_dir: Optional[str] = None, name=str, cot_relabel_path=None, is_video=False, **kwargs
+        self,
+        data_path: str,
+        media_dir: Optional[str] = None,
+        name=str,
+        cot_relabel_path=None,
+        is_video=False,
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.data_path = data_path
@@ -174,5 +180,3 @@ def process_multi_img(self, instance: Dict[str, Any], index: int) -> List[Dict[s
     assert len(medias) == 0, f"#Num of <images> does not match the number of images in the instance. {instance}"
 
     return messages
-
-

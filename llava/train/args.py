@@ -91,7 +91,9 @@ class ModelArguments:
         ],
     )
 
-    pad_to_multiple_of: int = 0  # if sequence length * batch size can not be divided by 128, the triton implementation of fp8 matmul when calculating weight gradient will become highly inefficient. Therefore, I want to pad the sequence length to a multiple of some exponent of 2. This will be used in prepare_inputs_labels_for_multimodal()
+    pad_to_multiple_of: int = (
+        0  # if sequence length * batch size can not be divided by 128, the triton implementation of fp8 matmul when calculating weight gradient will become highly inefficient. Therefore, I want to pad the sequence length to a multiple of some exponent of 2. This will be used in prepare_inputs_labels_for_multimodal()
+    )
 
     # Memory Efficient FP8 related
     Ubit: str = field(default="100")
@@ -158,7 +160,9 @@ class ModelArguments:
         ],
     )
 
-    pad_to_multiple_of: int = 0  # if sequence length * batch size can not be divided by 128, the triton implementation of fp8 matmul when calculating weight gradient will become highly inefficient. Therefore, I want to pad the sequence length to a multiple of some exponent of 2. This will be used in prepare_inputs_labels_for_multimodal()
+    pad_to_multiple_of: int = (
+        0  # if sequence length * batch size can not be divided by 128, the triton implementation of fp8 matmul when calculating weight gradient will become highly inefficient. Therefore, I want to pad the sequence length to a multiple of some exponent of 2. This will be used in prepare_inputs_labels_for_multimodal()
+    )
 
     # Memory Efficient FP8 related
     Ubit: str = field(default="100")
@@ -265,5 +269,3 @@ class TrainingArguments(transformers.TrainingArguments):
         default=False,
         metadata={"help": "Whether enter debug mode."},
     )
-
-
