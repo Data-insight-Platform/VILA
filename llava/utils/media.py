@@ -33,7 +33,7 @@ def download_s3_asset(video_path: str, s3_prefix: str = "s3://") -> str:
 
     video_path = video_path.replace(s3_prefix, "")
     bucket, key = video_path.split("/", 1)
-    s3 = boto3.client("s3")
+    s3 = boto3.client("s3", region_name=os.getenv("AWS_REGION", None))
     assets_dir = Path("/tmp/inference")
     asset = assets_dir / key
     asset.parent.mkdir(parents=True, exist_ok=True)
